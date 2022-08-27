@@ -93,6 +93,10 @@ func (q *Queue) Enqueue(x interface{}) (err error) {
 	pl := len(q.buf) - po
 	binary.LittleEndian.PutUint32(q.buf[ho:ho+4], uint32(pl))
 
+	if MemorySize(len(q.buf)) >= q.config.Size {
+		err = q.flushLF(flushReasonSize)
+	}
+
 	return
 }
 
@@ -103,6 +107,11 @@ func (q *Queue) Rate() float32 {
 func (q *Queue) Close() error {
 	if q.getStatus() == blqueue.StatusClose {
 		return blqueue.ErrQueueClosed
+	}
+	q.mux.Lock()
+	defer q.mux.Unlock()
+	if len(q.buf) > 0 {
+		return q.flushLF(flushReasonForce)
 	}
 	return nil
 }

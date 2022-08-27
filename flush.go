@@ -18,10 +18,13 @@ const (
 
 type flushReason uint8
 
-func (q *Queue) flush(reason flushReason) (err error) {
+func (q *Queue) flush(reason flushReason) error {
 	q.mux.Lock()
 	defer q.mux.Unlock()
+	return q.flushLF(reason)
+}
 
+func (q *Queue) flushLF(reason flushReason) (err error) {
 	off := len(q.buf)
 	if q.buf, err = clock.AppendFormat(q.buf, q.config.FileMask, time.Now()); err != nil {
 		return
@@ -49,6 +52,7 @@ func (q *Queue) flush(reason flushReason) (err error) {
 			return
 		}
 	}
+	q.buf = q.buf[:0]
 	err = f.Close()
 	return
 }

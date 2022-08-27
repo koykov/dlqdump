@@ -3,7 +3,7 @@ package dlqdump
 import "time"
 
 const (
-	defaultFileMask  = "%Y-%m-%d--%H-%M-%S--%i.bin"
+	defaultFileMask  = "%Y-%m-%d--%H-%M-%S--%n.bin"
 	defaultTimeLimit = time.Second * 30
 )
 

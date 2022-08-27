@@ -18,29 +18,31 @@ func (m m8r) MarshalTo(p []byte) (int, error) {
 	return m.Size(), nil
 }
 
-func TestQueue(t *testing.T) {
-	t.Run("stage0", func(t *testing.T) {
+func TestFlush(t *testing.T) {
+	p := []byte("asdfgh456")
+	s := "qwerty789"
+	var buf bytes.Buffer
+	buf.WriteString("qweasdzxc2468")
+	m := m8r{payload: []byte("ertfghvbn123")}
+	var vars = []interface{}{
+		[]byte("foobar123"),
+		&p,
+		"zxcvbn051",
+		&s,
+		&buf,
+		&m,
+	}
+
+	t.Run("force", func(t *testing.T) {
 		q, err := New(&Config{
 			Version:   0,
 			Key:       "stage0",
 			Size:      Byte * 512,
 			Directory: "dump",
+			FileMask:  "force--" + defaultFileMask,
 		})
 		if err != nil {
 			t.Fatal(err)
-		}
-		p := []byte("asdfgh")
-		s := "qwerty"
-		var buf bytes.Buffer
-		buf.WriteString("qweasdzxc")
-		m := m8r{payload: []byte("ertfghvbn123")}
-		var vars = []interface{}{
-			[]byte("foobar"),
-			&p,
-			"zxcvbn",
-			&s,
-			&buf,
-			&m,
 		}
 		for i := 0; i < len(vars); i++ {
 			if err = q.Enqueue(vars[i]); err != nil {
@@ -48,6 +50,29 @@ func TestQueue(t *testing.T) {
 			}
 		}
 		if err = q.flush(flushReasonForce); err != nil {
+			t.Fatal(err)
+		}
+		if err = q.Close(); err != nil {
+			t.Fatal(err)
+		}
+	})
+	t.Run("size", func(t *testing.T) {
+		q, err := New(&Config{
+			Version:   0,
+			Key:       "stage0",
+			Size:      Byte * 32,
+			Directory: "dump",
+			FileMask:  "size--" + defaultFileMask,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		for i := 0; i < len(vars); i++ {
+			if err = q.Enqueue(vars[i]); err != nil {
+				t.Fatal(err)
+			}
+		}
+		if err = q.Close(); err != nil {
 			t.Fatal(err)
 		}
 	})
