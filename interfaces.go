@@ -1,5 +1,9 @@
 package dlqdump
 
+type Byter interface {
+	Bytes() []byte
+}
+
 type Marshaller interface {
 	Marshal() ([]byte, error)
 }
