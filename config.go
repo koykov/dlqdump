@@ -3,7 +3,8 @@ package dlqdump
 import "time"
 
 const (
-	defaultFileMask = "{key}__%Y-%m-%d"
+	defaultFileMask  = "%Y-%m-%d--%H-%M-%S--%i.bin"
+	defaultTimeLimit = time.Second * 30
 )
 
 type Config struct {
@@ -15,4 +16,9 @@ type Config struct {
 	Decoder   Decoder
 	Directory string
 	FileMask  string
+}
+
+func (c *Config) Copy() *Config {
+	cpy := *c
+	return &cpy
 }
