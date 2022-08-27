@@ -42,6 +42,11 @@ func (q *Queue) Enqueue(x interface{}) (err error) {
 	q.mux.Lock()
 	defer q.mux.Unlock()
 
+	if len(q.buf) == 0 {
+		q.buf = bytealg.GrowDelta(q.buf, 4)
+		binary.LittleEndian.PutUint32(q.buf[:4], q.config.Version)
+	}
+
 	ho := len(q.buf)
 	q.buf = append(q.buf, '0')
 	q.buf = append(q.buf, '0')
@@ -72,6 +77,8 @@ func (q *Queue) Enqueue(x interface{}) (err error) {
 			if b, err = m.Marshal(); err == nil {
 				q.buf = append(q.buf, b...)
 			}
+		case Byter:
+			q.buf = append(q.buf, x.(Byter).Bytes()...)
 		case fmt.Stringer:
 			q.buf = append(q.buf, x.(fmt.Stringer).String()...)
 		default:
@@ -112,6 +119,17 @@ func (q *Queue) init() {
 		q.Err = blqueue.ErrNoSize
 		q.setStatus(blqueue.StatusFail)
 		return
+	}
+	if len(c.Directory) == 0 {
+		q.Err = ErrNoDestinationDir
+		q.setStatus(blqueue.StatusFail)
+		return
+	}
+	if c.TimeLimit == 0 {
+		c.TimeLimit = defaultTimeLimit
+	}
+	if len(c.FileMask) == 0 {
+		c.FileMask = defaultFileMask
 	}
 
 	q.setStatus(blqueue.StatusActive)

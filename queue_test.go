@@ -47,5 +47,8 @@ func TestQueue(t *testing.T) {
 				t.Fatal(err)
 			}
 		}
+		if err = q.flush(flushReasonForce); err != nil {
+			t.Fatal(err)
+		}
 	})
 }
