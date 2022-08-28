@@ -90,6 +90,7 @@ func (q *Queue) Enqueue(x interface{}) (err error) {
 
 	pl := len(q.buf) - po
 	binary.LittleEndian.PutUint32(q.buf[ho:ho+4], uint32(pl))
+	q.config.MetricsWriter.QueuePut(q.config.Key, pl)
 
 	if MemorySize(len(q.buf)) >= q.config.Size {
 		q.timer.reset()
@@ -146,6 +147,10 @@ func (q *Queue) init() {
 	q.timer = newTimer()
 	if len(c.FileMask) == 0 {
 		c.FileMask = defaultFileMask
+	}
+
+	if c.MetricsWriter == nil {
+		c.MetricsWriter = DummyMetrics{}
 	}
 
 	q.setStatus(blqueue.StatusActive)

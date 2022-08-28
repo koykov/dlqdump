@@ -12,15 +12,16 @@ const (
 )
 
 type Config struct {
-	Version   uint32
-	Key       string
-	Size      MemorySize
-	TimeLimit time.Duration
-	Encoder   Encoder
-	Decoder   Decoder
-	Directory string
-	FileMask  string
-	Logger    blqueue.Logger
+	Version       uint32
+	Key           string
+	Size          MemorySize
+	TimeLimit     time.Duration
+	Encoder       Encoder
+	Decoder       Decoder
+	Directory     string
+	FileMask      string
+	MetricsWriter MetricsWriter
+	Logger        blqueue.Logger
 }
 
 func (c *Config) Copy() *Config {

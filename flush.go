@@ -33,11 +33,11 @@ func (q *Queue) flushLF(reason flushReason) (err error) {
 		l.Printf(msg, q.config.Key, reason)
 	}
 
-	off := len(q.buf)
+	size := len(q.buf)
 	if q.buf, err = clock.AppendFormat(q.buf, q.config.FileMask, time.Now()); err != nil {
 		return
 	}
-	filename := q.buf[off:]
+	filename := q.buf[size:]
 	off1 := len(q.buf)
 	q.buf = append(q.buf, q.config.Directory...)
 	q.buf = append(q.buf, os.PathSeparator)
@@ -48,7 +48,7 @@ func (q *Queue) flushLF(reason flushReason) (err error) {
 	if f, err = os.Create(fastconv.B2S(filepath)); err != nil {
 		return
 	}
-	p := q.buf[:off]
+	p := q.buf[:size]
 	for len(p) >= writeBufferSize {
 		if _, err = f.Write(p[:writeBufferSize]); err != nil {
 			return
@@ -62,6 +62,9 @@ func (q *Queue) flushLF(reason flushReason) (err error) {
 	}
 	q.buf = q.buf[:0]
 	err = f.Close()
+
+	q.config.MetricsWriter.QueueFlush(q.config.Key, reason.String(), size)
+
 	return
 }
 
