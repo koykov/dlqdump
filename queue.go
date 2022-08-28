@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	"github.com/koykov/bitset"
 	"github.com/koykov/blqueue"
@@ -17,10 +16,9 @@ type Queue struct {
 	config *Config
 	status blqueue.Status
 
-	once  sync.Once
-	timer *time.Timer
-	mux   sync.Mutex
-	buf   []byte
+	once sync.Once
+	mux  sync.Mutex
+	buf  []byte
 
 	Err error
 }

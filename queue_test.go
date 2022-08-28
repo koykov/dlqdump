@@ -3,6 +3,7 @@ package dlqdump
 import (
 	"bytes"
 	"testing"
+	"time"
 )
 
 type m8r struct {
@@ -39,7 +40,7 @@ func TestFlush(t *testing.T) {
 			Key:       "stage0",
 			Size:      Byte * 512,
 			Directory: "dump",
-			FileMask:  "force--" + defaultFileMask,
+			FileMask:  "force--%Y-%m-%d--%H-%M-%S--%n.bin",
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -62,7 +63,7 @@ func TestFlush(t *testing.T) {
 			Key:       "stage0",
 			Size:      Byte * 32,
 			Directory: "dump",
-			FileMask:  "size--" + defaultFileMask,
+			FileMask:  "size--%Y-%m-%d--%H-%M-%S--%n.bin",
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -71,6 +72,28 @@ func TestFlush(t *testing.T) {
 			if err = q.Enqueue(vars[i]); err != nil {
 				t.Fatal(err)
 			}
+		}
+		if err = q.Close(); err != nil {
+			t.Fatal(err)
+		}
+	})
+	t.Run("timer", func(t *testing.T) {
+		q, err := New(&Config{
+			Version:   0,
+			Key:       "stage0",
+			Size:      Byte * 512,
+			TimeLimit: time.Millisecond * 10,
+			Directory: "dump",
+			FileMask:  "timer--%Y-%m-%d--%H-%M-%S--%n.bin",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		for i := 0; i < len(vars); i++ {
+			if err = q.Enqueue(vars[i]); err != nil {
+				t.Fatal(err)
+			}
+			time.Sleep(time.Millisecond * 3)
 		}
 		if err = q.Close(); err != nil {
 			t.Fatal(err)

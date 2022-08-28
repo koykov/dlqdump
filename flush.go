@@ -10,7 +10,7 @@ import (
 
 const (
 	flushReasonSize flushReason = iota
-	flushReasonTimer
+	flushReasonTimeLimit
 	flushReasonForce
 
 	writeBufferSize = 16
