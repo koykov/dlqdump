@@ -1,6 +1,10 @@
 package dlqdump
 
-import "time"
+import (
+	"time"
+
+	"github.com/koykov/blqueue"
+)
 
 const (
 	defaultFileMask  = "%Y-%m-%d--%H-%M-%S--%i.bin"
@@ -16,6 +20,7 @@ type Config struct {
 	Decoder   Decoder
 	Directory string
 	FileMask  string
+	Logger    blqueue.Logger
 }
 
 func (c *Config) Copy() *Config {

@@ -6,13 +6,11 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/koykov/bitset"
 	"github.com/koykov/blqueue"
 	"github.com/koykov/bytealg"
 )
 
 type Queue struct {
-	bitset.Bitset
 	config *Config
 	status blqueue.Status
 
@@ -109,6 +107,12 @@ func (q *Queue) Close() error {
 	if q.getStatus() == blqueue.StatusClose {
 		return blqueue.ErrQueueClosed
 	}
+
+	if l := q.config.Logger; l != nil {
+		msg := "queue #%s caught close signal"
+		l.Printf(msg, q.config.Key)
+	}
+
 	q.mux.Lock()
 	defer q.mux.Unlock()
 	q.timer.stop()

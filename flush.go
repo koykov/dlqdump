@@ -28,6 +28,11 @@ func (q *Queue) flush(reason flushReason) error {
 }
 
 func (q *Queue) flushLF(reason flushReason) (err error) {
+	if l := q.config.Logger; l != nil {
+		msg := "queue #%s flush by reason '%s'"
+		l.Printf(msg, q.config.Key, reason)
+	}
+
 	off := len(q.buf)
 	if q.buf, err = clock.AppendFormat(q.buf, q.config.FileMask, time.Now()); err != nil {
 		return
@@ -58,4 +63,17 @@ func (q *Queue) flushLF(reason flushReason) (err error) {
 	q.buf = q.buf[:0]
 	err = f.Close()
 	return
+}
+
+func (r flushReason) String() string {
+	switch r {
+	case flushReasonSize:
+		return "size limit"
+	case flushReasonTimeLimit:
+		return "time limit"
+	case flushReasonForce:
+		return "force"
+	default:
+		return "unknown"
+	}
 }
