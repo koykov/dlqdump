@@ -21,6 +21,9 @@ type flushReason uint8
 func (q *Queue) flush(reason flushReason) error {
 	q.mux.Lock()
 	defer q.mux.Unlock()
+	if reason == flushReasonForce {
+		q.timer.reset()
+	}
 	return q.flushLF(reason)
 }
 

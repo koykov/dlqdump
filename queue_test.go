@@ -93,8 +93,8 @@ func TestFlush(t *testing.T) {
 			if err = q.Enqueue(vars[i]); err != nil {
 				t.Fatal(err)
 			}
-			time.Sleep(time.Millisecond * 3)
 		}
+		time.Sleep(time.Millisecond * 20)
 		if err = q.Close(); err != nil {
 			t.Fatal(err)
 		}

@@ -16,9 +16,10 @@ type Queue struct {
 	config *Config
 	status blqueue.Status
 
-	once sync.Once
-	mux  sync.Mutex
-	buf  []byte
+	once  sync.Once
+	timer *timer
+	mux   sync.Mutex
+	buf   []byte
 
 	Err error
 }
@@ -43,6 +44,7 @@ func (q *Queue) Enqueue(x interface{}) (err error) {
 	if len(q.buf) == 0 {
 		q.buf = bytealg.GrowDelta(q.buf, 4)
 		binary.LittleEndian.PutUint32(q.buf[:4], q.config.Version)
+		go q.timer.wait(q)
 	}
 
 	ho := len(q.buf)
@@ -92,6 +94,7 @@ func (q *Queue) Enqueue(x interface{}) (err error) {
 	binary.LittleEndian.PutUint32(q.buf[ho:ho+4], uint32(pl))
 
 	if MemorySize(len(q.buf)) >= q.config.Size {
+		q.timer.reset()
 		err = q.flushLF(flushReasonSize)
 	}
 
@@ -108,7 +111,8 @@ func (q *Queue) Close() error {
 	}
 	q.mux.Lock()
 	defer q.mux.Unlock()
-	if len(q.buf) > 0 {
+	q.timer.stop()
+	if len(q.buf) > 4 {
 		return q.flushLF(flushReasonForce)
 	}
 	return nil
@@ -135,6 +139,7 @@ func (q *Queue) init() {
 	if c.TimeLimit == 0 {
 		c.TimeLimit = defaultTimeLimit
 	}
+	q.timer = newTimer()
 	if len(c.FileMask) == 0 {
 		c.FileMask = defaultFileMask
 	}
