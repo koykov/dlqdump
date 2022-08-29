@@ -11,6 +11,8 @@ const (
 	defaultFileMask = "%Y-%m-%d--%H-%M-%S--%i.bin"
 	// Default time limit to flush the data.
 	defaultTimeLimit = time.Second * 30
+	// Default rate limit that allows restore.
+	defaultRestoreAllowRateLimit = .95
 )
 
 type Config struct {
@@ -38,6 +40,12 @@ type Config struct {
 	// Supports strftime patterns (see https://github.com/koykov/clock#format).
 	// If this param omit defaultFileMask ("%Y-%m-%d--%H-%M-%S--%i.bin") will use instead.
 	FileMask string
+	// RestoreTo indicates the queue to put data from dump files.
+	// This param requires Decoder.
+	RestoreTo blqueue.Interface
+	// Queue rate that forbids or allows put data from dump files to the RestoreTo queue.
+	// If this param omit defaultRestoreAllowRateLimit (95%) will use instead.
+	RestoreAllowRateLimit float32
 	// Metrics writer handler.
 	MetricsWriter MetricsWriter
 	// Logger handler.

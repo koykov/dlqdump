@@ -141,6 +141,11 @@ func (q *Queue) init() {
 		q.setStatus(blqueue.StatusFail)
 		return
 	}
+	if c.RestoreTo != nil && c.Decoder == nil {
+		q.Err = ErrNoDecoder
+		q.setStatus(blqueue.StatusFail)
+		return
+	}
 	if c.TimeLimit == 0 {
 		c.TimeLimit = defaultTimeLimit
 	}
