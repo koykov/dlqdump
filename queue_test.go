@@ -40,7 +40,7 @@ func TestFlush(t *testing.T) {
 			Key:       "stage0",
 			Size:      Byte * 512,
 			Directory: "dump",
-			FileMask:  "force--%Y-%m-%d--%H-%M-%S--%n.bin",
+			FileMask:  "force--%Y-%m-%d--%H-%M-%S--%N.bin",
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -50,9 +50,7 @@ func TestFlush(t *testing.T) {
 				t.Fatal(err)
 			}
 		}
-		if err = q.flush(flushReasonForce); err != nil {
-			t.Fatal(err)
-		}
+		// Force flush will trigger on close queue with unflushed data.
 		if err = q.Close(); err != nil {
 			t.Fatal(err)
 		}
@@ -63,7 +61,7 @@ func TestFlush(t *testing.T) {
 			Key:       "stage0",
 			Size:      Byte * 32,
 			Directory: "dump",
-			FileMask:  "size--%Y-%m-%d--%H-%M-%S--%n.bin",
+			FileMask:  "size--%Y-%m-%d--%H-%M-%S--%N.bin",
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -84,7 +82,7 @@ func TestFlush(t *testing.T) {
 			Size:      Byte * 512,
 			TimeLimit: time.Millisecond * 10,
 			Directory: "dump",
-			FileMask:  "timer--%Y-%m-%d--%H-%M-%S--%n.bin",
+			FileMask:  "timer--%Y-%m-%d--%H-%M-%S--%N.bin",
 		})
 		if err != nil {
 			t.Fatal(err)
