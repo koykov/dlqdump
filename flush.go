@@ -66,8 +66,16 @@ func (q *Queue) flushLF(reason flushReason) (err error) {
 	if err = f.Close(); err != nil {
 		return
 	}
+	if l := q.config.Logger; l != nil {
+		msg := "queue #%s flushed to '%s'"
+		l.Printf(msg, q.config.Key, filepathTmp)
+	}
 
 	err = os.Rename(filepathTmp, filepath)
+	if l := q.config.Logger; l != nil {
+		msg := "queue #%s rename '%s' to '%s'"
+		l.Printf(msg, q.config.Key, filepathTmp, filepath)
+	}
 
 	q.config.MetricsWriter.QueueFlush(q.config.Key, reason.String(), size)
 
