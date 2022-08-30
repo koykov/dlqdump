@@ -13,6 +13,8 @@ const (
 	defaultTimeLimit = time.Second * 30
 	// Default rate limit that allows restore.
 	defaultRestoreAllowRateLimit = .95
+	// Default delay if restore allow rate limit exceeds.
+	defaultRestoreDisallowDelay = time.Second
 )
 
 type Config struct {
@@ -28,26 +30,34 @@ type Config struct {
 	// After first incoming item will start the timer to flush the data when timer reach.
 	// If this param omit defaultTimeLimit (30 seconds) will use instead.
 	TimeLimit time.Duration
+
 	// Encoder helper to convert item to bytes.
 	// Will use universal encoder if omitted.
 	Encoder Encoder
 	// Decoder helper to convert bytes to item.
 	// Mandatory if RestoreTo param specified.
 	Decoder Decoder
+
 	// Destination directory for dump files.
 	Directory string
 	// Dump file mask.
 	// Supports strftime patterns (see https://github.com/koykov/clock#format).
 	// If this param omit defaultFileMask ("%Y-%m-%d--%H-%M-%S--%i.bin") will use instead.
 	FileMask string
+
 	// RestoreTo indicates the queue to put data from dump files.
 	// This param requires Decoder.
 	RestoreTo blqueue.Interface
 	// Queue rate that forbids or allows put data from dump files to the RestoreTo queue.
 	// If this param omit defaultRestoreAllowRateLimit (95%) will use instead.
 	RestoreAllowRateLimit float32
+	// RestoreDisallowDelay indicates how many need wait before new attempt if RestoreAllowRateLimit was exceeded.
+	// If this param omit defaultRestoreDisallowDelay (1 second) will use instead.
+	RestoreDisallowDelay time.Duration
+
 	// Metrics writer handler.
 	MetricsWriter MetricsWriter
+
 	// Logger handler.
 	Logger blqueue.Logger
 }

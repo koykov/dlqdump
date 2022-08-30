@@ -153,6 +153,12 @@ func (q *Queue) init() {
 	if len(c.FileMask) == 0 {
 		c.FileMask = defaultFileMask
 	}
+	if c.RestoreTo != nil && c.RestoreAllowRateLimit == 0 {
+		c.RestoreAllowRateLimit = defaultRestoreAllowRateLimit
+	}
+	if c.RestoreTo != nil && c.RestoreDisallowDelay == 0 {
+		c.RestoreDisallowDelay = defaultRestoreDisallowDelay
+	}
 
 	if c.MetricsWriter == nil {
 		c.MetricsWriter = DummyMetrics{}
