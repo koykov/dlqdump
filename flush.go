@@ -42,10 +42,12 @@ func (q *Queue) flushLF(reason flushReason) (err error) {
 	q.buf = append(q.buf, q.config.Directory...)
 	q.buf = append(q.buf, os.PathSeparator)
 	q.buf = append(q.buf, filename...)
-	filepath := q.buf[off1:]
+	filepath := fastconv.B2S(q.buf[off1:])
+	q.buf = append(q.buf, ".tmp"...)
+	filepathTmp := fastconv.B2S(q.buf[off1:])
 
 	var f *os.File
-	if f, err = os.Create(fastconv.B2S(filepath)); err != nil {
+	if f, err = os.Create(filepathTmp); err != nil {
 		return
 	}
 	p := q.buf[:size]
@@ -61,7 +63,11 @@ func (q *Queue) flushLF(reason flushReason) (err error) {
 		}
 	}
 	q.buf = q.buf[:0]
-	err = f.Close()
+	if err = f.Close(); err != nil {
+		return
+	}
+
+	err = os.Rename(filepathTmp, filepath)
 
 	q.config.MetricsWriter.QueueFlush(q.config.Key, reason.String(), size)
 
