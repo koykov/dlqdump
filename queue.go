@@ -1,7 +1,6 @@
 package dlqdump
 
 import (
-	"context"
 	"encoding/binary"
 	"fmt"
 	"sync"
@@ -20,8 +19,7 @@ type Queue struct {
 	mux   sync.Mutex
 	buf   []byte
 
-	rlck uint32
-	rcan context.CancelFunc
+	rw *rworker
 
 	Err error
 }
@@ -125,10 +123,8 @@ func (q *Queue) Close() error {
 		return q.flushLF(flushReasonForce)
 	}
 
-	if q.config.RestoreTo != nil {
-		q.rcan()
-		for atomic.LoadUint32(&q.rlck) == 1 {
-		}
+	if q.rw != nil {
+		q.rw.stop()
 	}
 
 	return nil
@@ -171,9 +167,9 @@ func (q *Queue) init() {
 		if c.RestoreDisallowDelay == 0 {
 			c.RestoreDisallowDelay = defaultRestoreDisallowDelay
 		}
-		var ctx context.Context
-		ctx, q.rcan = context.WithCancel(context.Background())
-		go q.restore(ctx)
+
+		q.rw = newRestoreWorker(c)
+		go q.rw.observe()
 	}
 
 	if c.MetricsWriter == nil {
