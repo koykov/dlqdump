@@ -1,6 +1,7 @@
 package dlqdump
 
 import (
+	"context"
 	"encoding/binary"
 	"fmt"
 	"sync"
@@ -18,6 +19,9 @@ type Queue struct {
 	timer *timer
 	mux   sync.Mutex
 	buf   []byte
+
+	rlck uint32
+	rcan context.CancelFunc
 
 	Err error
 }
@@ -120,6 +124,13 @@ func (q *Queue) Close() error {
 	if len(q.buf) > 4 {
 		return q.flushLF(flushReasonForce)
 	}
+
+	if q.config.RestoreTo != nil {
+		q.rcan()
+		for atomic.LoadUint32(&q.rlck) == 1 {
+		}
+	}
+
 	return nil
 }
 
@@ -153,11 +164,16 @@ func (q *Queue) init() {
 	if len(c.FileMask) == 0 {
 		c.FileMask = defaultFileMask
 	}
-	if c.RestoreTo != nil && c.RestoreAllowRateLimit == 0 {
-		c.RestoreAllowRateLimit = defaultRestoreAllowRateLimit
-	}
-	if c.RestoreTo != nil && c.RestoreDisallowDelay == 0 {
-		c.RestoreDisallowDelay = defaultRestoreDisallowDelay
+	if c.RestoreTo != nil {
+		if c.RestoreAllowRateLimit == 0 {
+			c.RestoreAllowRateLimit = defaultRestoreAllowRateLimit
+		}
+		if c.RestoreDisallowDelay == 0 {
+			c.RestoreDisallowDelay = defaultRestoreDisallowDelay
+		}
+		var ctx context.Context
+		ctx, q.rcan = context.WithCancel(context.Background())
+		go q.restore(ctx)
 	}
 
 	if c.MetricsWriter == nil {
