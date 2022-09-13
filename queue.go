@@ -94,7 +94,7 @@ func (q *Queue) Enqueue(x interface{}) (err error) {
 	binary.LittleEndian.PutUint32(q.buf[ho:ho+4], uint32(pl))
 	q.config.MetricsWriter.QueuePut(q.config.Key, pl)
 
-	if MemorySize(len(q.buf)) >= q.config.Size {
+	if MemorySize(len(q.buf)) >= q.config.Capacity {
 		q.timer.reset()
 		err = q.flushLF(flushReasonSize)
 	}
@@ -138,7 +138,7 @@ func (q *Queue) init() {
 		q.setStatus(blqueue.StatusFail)
 		return
 	}
-	if c.Size == 0 {
+	if c.Capacity == 0 {
 		q.Err = blqueue.ErrNoSize
 		q.setStatus(blqueue.StatusFail)
 		return
@@ -153,8 +153,8 @@ func (q *Queue) init() {
 		q.setStatus(blqueue.StatusFail)
 		return
 	}
-	if c.TimeLimit == 0 {
-		c.TimeLimit = defaultTimeLimit
+	if c.FlushInterval == 0 {
+		c.FlushInterval = defaultTimeLimit
 	}
 	q.timer = newTimer()
 	if len(c.FileMask) == 0 {

@@ -38,7 +38,7 @@ func TestFlush(t *testing.T) {
 		q, err := New(&Config{
 			Version:   0,
 			Key:       "stage0",
-			Size:      Byte * 512,
+			Capacity:  Byte * 512,
 			Directory: "dump",
 			FileMask:  "force--%Y-%m-%d--%H-%M-%S--%N.bin",
 		})
@@ -59,7 +59,7 @@ func TestFlush(t *testing.T) {
 		q, err := New(&Config{
 			Version:   0,
 			Key:       "stage0",
-			Size:      Byte * 32,
+			Capacity:  Byte * 32,
 			Directory: "dump",
 			FileMask:  "size--%Y-%m-%d--%H-%M-%S--%N.bin",
 		})
@@ -77,12 +77,12 @@ func TestFlush(t *testing.T) {
 	})
 	t.Run("timer", func(t *testing.T) {
 		q, err := New(&Config{
-			Version:   0,
-			Key:       "stage0",
-			Size:      Byte * 512,
-			TimeLimit: time.Millisecond * 10,
-			Directory: "dump",
-			FileMask:  "timer--%Y-%m-%d--%H-%M-%S--%N.bin",
+			Version:       0,
+			Key:           "stage0",
+			Capacity:      Byte * 512,
+			FlushInterval: time.Millisecond * 10,
+			Directory:     "dump",
+			FileMask:      "timer--%Y-%m-%d--%H-%M-%S--%N.bin",
 		})
 		if err != nil {
 			t.Fatal(err)

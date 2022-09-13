@@ -24,7 +24,7 @@ func newTimer() *timer {
 }
 
 func (t *timer) wait(queue *Queue) {
-	time.AfterFunc(queue.config.TimeLimit, func() {
+	time.AfterFunc(queue.config.FlushInterval, func() {
 		queue.timer.reach()
 	})
 	for {
