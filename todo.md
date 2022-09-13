@@ -7,6 +7,9 @@
 * rename TimeLimit to FlushInterval
 * combine common encoding methods to one universal encoder
 * think about Encoder/Decoder signatures
+  * json.Marshaller
+  * xml.Marshaller
+  * gob.Encoder
 * implement abstract dumper (like afero)
   * interface
   * file dump implementation
