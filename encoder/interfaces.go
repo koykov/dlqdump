@@ -1,4 +1,4 @@
-package dlqdump
+package encoder
 
 type Byter interface {
 	Bytes() []byte

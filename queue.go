@@ -2,7 +2,6 @@ package dlqdump
 
 import (
 	"encoding/binary"
-	"fmt"
 	"sync"
 	"sync/atomic"
 
@@ -54,37 +53,7 @@ func (q *Queue) Enqueue(x interface{}) (err error) {
 	q.buf = append(q.buf, '0')
 	po := len(q.buf)
 
-	if q.config.Encoder != nil {
-		q.buf, err = q.config.Encoder.Encode(q.buf, x)
-	} else {
-		switch x.(type) {
-		case []byte:
-			q.buf = append(q.buf, x.([]byte)...)
-		case *[]byte:
-			q.buf = append(q.buf, *x.(*[]byte)...)
-		case string:
-			q.buf = append(q.buf, x.(string)...)
-		case *string:
-			q.buf = append(q.buf, *x.(*string)...)
-		case MarshallerTo:
-			off := len(q.buf)
-			m := x.(MarshallerTo)
-			q.buf = bytealg.GrowDelta(q.buf, m.Size())
-			_, err = m.MarshalTo(q.buf[off:])
-		case Marshaller:
-			m := x.(Marshaller)
-			var b []byte
-			if b, err = m.Marshal(); err == nil {
-				q.buf = append(q.buf, b...)
-			}
-		case Byter:
-			q.buf = append(q.buf, x.(Byter).Bytes()...)
-		case fmt.Stringer:
-			q.buf = append(q.buf, x.(fmt.Stringer).String()...)
-		default:
-			err = ErrUnknownMarshaller
-		}
-	}
+	q.buf, err = q.config.Encoder.Encode(q.buf, x)
 	if err != nil {
 		q.buf = q.buf[:ho]
 		return
@@ -140,6 +109,11 @@ func (q *Queue) init() {
 	}
 	if c.Capacity == 0 {
 		q.Err = blqueue.ErrNoSize
+		q.setStatus(blqueue.StatusFail)
+		return
+	}
+	if c.Encoder == nil {
+		q.Err = ErrNoEncoder
 		q.setStatus(blqueue.StatusFail)
 		return
 	}

@@ -3,7 +3,8 @@ package dlqdump
 import "errors"
 
 var (
-	ErrUnknownMarshaller = errors.New("unknown marshaller")
-	ErrNoDestinationDir  = errors.New("no destination directory provided")
-	ErrNoDecoder         = errors.New("no decoder provided")
+	ErrIncompatibleMarshaller = errors.New("incompatible encoder")
+	ErrNoDestinationDir       = errors.New("no destination directory provided")
+	ErrNoEncoder              = errors.New("no encoder provided")
+	ErrNoDecoder              = errors.New("no decoder provided")
 )
