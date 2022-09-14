@@ -36,7 +36,7 @@ func (e Basic) Encode(dst []byte, x interface{}) ([]byte, error) {
 	case fmt.Stringer:
 		dst = append(dst, x.(fmt.Stringer).String()...)
 	default:
-		err = dlqdump.ErrIncompatibleMarshaller
+		err = dlqdump.ErrIncompatibleEncoder
 	}
 	return dst, err
 }
