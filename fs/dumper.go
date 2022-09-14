@@ -1,11 +1,10 @@
-package io
+package fs
 
 import (
-	"github.com/koykov/blqueue"
 	"github.com/koykov/dlqdump"
 )
 
-type FS struct {
+type Dumper struct {
 	// Max buffer size in bytes.
 	// Dumper will move buffered data to destination file on overflow.
 	Buffer dlqdump.MemorySize
@@ -17,16 +16,15 @@ type FS struct {
 	FileMask string
 }
 
-func (d FS) Dump(p []byte) (n int, err error) {
+func (d Dumper) Dump(p []byte) (n int, err error) {
 	_ = p
 	return
 }
 
-func (d FS) Flush() error {
-	return nil
+func (d Dumper) Size() dlqdump.MemorySize {
+	return 0
 }
 
-func (d FS) Restore(dst blqueue.Interface) error {
-	_ = dst
+func (d Dumper) Flush() error {
 	return nil
 }
