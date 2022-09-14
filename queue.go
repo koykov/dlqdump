@@ -71,6 +71,14 @@ func (q *Queue) Enqueue(x interface{}) (err error) {
 	return
 }
 
+func (q *Queue) Size() int {
+	return 0
+}
+
+func (q *Queue) Capacity() int {
+	return 0
+}
+
 func (q *Queue) Rate() float32 {
 	return 0
 }
