@@ -33,23 +33,6 @@ type Config struct {
 	// Mandatory param.
 	Dumper Dumper
 
-	// Destination directory for dump files.
-	Directory string
-	// Dump file mask.
-	// Supports strftime patterns (see https://github.com/koykov/clock#format).
-	// If this param omit defaultFileMask ("%Y-%m-%d--%H-%M-%S--%i.bin") will use instead.
-	FileMask string
-
-	// RestoreTo indicates the queue to put data from dump files.
-	// This param requires Decoder.
-	RestoreTo blqueue.Interface
-	// Queue rate that forbids or allows put data from dump files to the RestoreTo queue.
-	// If this param omit defaultRestoreAllowRateLimit (95%) will use instead.
-	RestoreAllowRateLimit float32
-	// RestoreDisallowDelay indicates how many need wait before new attempt if RestoreAllowRateLimit was exceeded.
-	// If this param omit defaultRestoreDisallowDelay (1 second) will use instead.
-	RestoreDisallowDelay time.Duration
-
 	// Metrics writer handler.
 	MetricsWriter MetricsWriter
 

@@ -4,8 +4,6 @@ const (
 	flushReasonSize flushReason = iota
 	flushReasonTimeLimit
 	flushReasonForce
-
-	writeBufferSize = 16
 )
 
 type flushReason uint8
