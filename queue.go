@@ -16,8 +16,6 @@ type Queue struct {
 	mux   sync.Mutex
 	buf   []byte
 
-	rw *rworker
-
 	Err error
 }
 
@@ -85,10 +83,6 @@ func (q *Queue) Close() error {
 	q.timer.stop()
 	if len(q.buf) > 4 {
 		return q.flushLF(flushReasonForce)
-	}
-
-	if q.rw != nil {
-		q.rw.stop()
 	}
 
 	return nil
