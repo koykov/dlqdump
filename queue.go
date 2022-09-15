@@ -1,12 +1,10 @@
 package dlqdump
 
 import (
-	"encoding/binary"
 	"sync"
 	"sync/atomic"
 
 	"github.com/koykov/blqueue"
-	"github.com/koykov/bytealg"
 )
 
 type Queue struct {
@@ -40,30 +38,16 @@ func (q *Queue) Enqueue(x interface{}) (err error) {
 	q.mux.Lock()
 	defer q.mux.Unlock()
 
-	if len(q.buf) == 0 {
-		q.buf = bytealg.GrowDelta(q.buf, 4)
-		binary.LittleEndian.PutUint32(q.buf[:4], q.config.Version)
-		go q.timer.wait(q)
-	}
-
-	ho := len(q.buf)
-	q.buf = append(q.buf, '0')
-	q.buf = append(q.buf, '0')
-	q.buf = append(q.buf, '0')
-	q.buf = append(q.buf, '0')
-	po := len(q.buf)
-
-	q.buf, err = q.config.Encoder.Encode(q.buf, x)
+	q.buf, err = q.config.Encoder.Encode(q.buf[:0], x)
 	if err != nil {
-		q.buf = q.buf[:ho]
 		return
 	}
 
-	pl := len(q.buf) - po
-	binary.LittleEndian.PutUint32(q.buf[ho:ho+4], uint32(pl))
-	q.config.MetricsWriter.QueuePut(q.config.Key, pl)
+	if _, err = q.config.Dumper.Dump(q.config.Version, q.buf); err != nil {
+		return
+	}
 
-	if MemorySize(len(q.buf)) >= q.config.Capacity {
+	if q.config.Dumper.Size() >= q.config.Capacity {
 		q.timer.reset()
 		err = q.flushLF(flushReasonSize)
 	}
