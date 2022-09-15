@@ -7,14 +7,8 @@ import (
 )
 
 const (
-	// Dump file names default mask.
-	defaultFileMask = "%Y-%m-%d--%H-%M-%S--%i.bin"
 	// Default time limit to flush the data.
 	defaultTimeLimit = time.Second * 30
-	// Default rate limit that allows restore.
-	defaultRestoreAllowRateLimit = .95
-	// Default delay if restore allow rate limit exceeds.
-	defaultRestoreDisallowDelay = time.Second
 )
 
 type Config struct {
@@ -34,9 +28,10 @@ type Config struct {
 	// Encoder helper to convert item to bytes.
 	// Will use universal encoder if omitted.
 	Encoder Encoder
-	// Decoder helper to convert bytes to item.
-	// Mandatory if RestoreTo param specified.
-	Decoder Decoder
+
+	// Dumper helper to dump data to various destinations.
+	// Mandatory param.
+	Dumper Dumper
 
 	// Destination directory for dump files.
 	Directory string

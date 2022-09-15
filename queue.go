@@ -72,11 +72,14 @@ func (q *Queue) Enqueue(x interface{}) (err error) {
 }
 
 func (q *Queue) Size() int {
-	return 0
+	if q.config.Dumper == nil {
+		return 0
+	}
+	return int(q.config.Dumper.Size())
 }
 
 func (q *Queue) Capacity() int {
-	return 0
+	return int(q.config.Capacity)
 }
 
 func (q *Queue) Rate() float32 {
@@ -125,13 +128,8 @@ func (q *Queue) init() {
 		q.setStatus(blqueue.StatusFail)
 		return
 	}
-	if len(c.Directory) == 0 {
-		q.Err = ErrNoDestinationDir
-		q.setStatus(blqueue.StatusFail)
-		return
-	}
-	if c.RestoreTo != nil && c.Decoder == nil {
-		q.Err = ErrNoDecoder
+	if c.Dumper == nil {
+		q.Err = ErrNoDumper
 		q.setStatus(blqueue.StatusFail)
 		return
 	}
@@ -139,20 +137,6 @@ func (q *Queue) init() {
 		c.FlushInterval = defaultTimeLimit
 	}
 	q.timer = newTimer()
-	if len(c.FileMask) == 0 {
-		c.FileMask = defaultFileMask
-	}
-	if c.RestoreTo != nil {
-		if c.RestoreAllowRateLimit == 0 {
-			c.RestoreAllowRateLimit = defaultRestoreAllowRateLimit
-		}
-		if c.RestoreDisallowDelay == 0 {
-			c.RestoreDisallowDelay = defaultRestoreDisallowDelay
-		}
-
-		q.rw = newRestoreWorker(c)
-		go q.rw.observe()
-	}
 
 	if c.MetricsWriter == nil {
 		c.MetricsWriter = DummyMetrics{}

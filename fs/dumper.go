@@ -1,13 +1,22 @@
 package fs
 
 import (
+	"encoding/binary"
+	"os"
 	"sync"
 	"sync/atomic"
+	"time"
 
+	"github.com/koykov/bytealg"
+	"github.com/koykov/clock"
 	"github.com/koykov/dlqdump"
+	"github.com/koykov/fastconv"
 )
 
-const defaultFileMask = "%Y-%m-%d--%H-%M-%S--%i.bin"
+const (
+	defaultFileMask = "%Y-%m-%d--%H-%M-%S--%i.bin"
+	flushChunkSize  = 16
+)
 
 type Dumper struct {
 	// Max buffer size in bytes.
@@ -26,17 +35,45 @@ type Dumper struct {
 	mask string
 	sz   uint64
 
+	mux sync.Mutex
+	f   *os.File
+	ft  string
+	fd  string
+	buf []byte
+
 	err error
 }
 
-func (d *Dumper) Dump(p []byte) (n int, err error) {
+func (d *Dumper) Dump(version uint32, p []byte) (n int, err error) {
+	if len(p) == 0 {
+		return 0, nil
+	}
 	d.once.Do(d.init)
 	if d.err != nil {
 		return 0, d.err
 	}
 
-	_ = p
-	// todo implement me
+	d.mux.Lock()
+	defer d.mux.Unlock()
+
+	off := len(d.buf)
+
+	if off == 0 {
+		d.buf = bytealg.GrowDelta(d.buf, 4)
+		binary.LittleEndian.PutUint32(d.buf[off:], version)
+	}
+
+	d.buf = bytealg.GrowDelta(d.buf, 4)
+	binary.LittleEndian.PutUint32(d.buf[off:], uint32(len(p)))
+	d.buf = append(d.buf, p...)
+	n = len(d.buf) - off
+	atomic.AddUint64(&d.sz, uint64(n))
+
+	if dlqdump.MemorySize(len(d.buf)) >= d.bs {
+		if err = d.flushBuf(); err != nil {
+			return
+		}
+	}
 
 	return
 }
@@ -45,12 +82,29 @@ func (d *Dumper) Size() dlqdump.MemorySize {
 	return dlqdump.MemorySize(atomic.LoadUint64(&d.sz))
 }
 
-func (d *Dumper) Flush() error {
+func (d *Dumper) Flush() (err error) {
 	d.once.Do(d.init)
 	if d.err != nil {
 		return d.err
 	}
-	return nil
+
+	d.mux.Lock()
+	defer d.mux.Unlock()
+	if len(d.buf) > 0 {
+		if err = d.flushBuf(); err != nil {
+			return
+		}
+	}
+	d.buf = d.buf[:0]
+	d.f = nil
+	atomic.StoreUint64(&d.sz, 0)
+
+	if err = d.f.Close(); err != nil {
+		return
+	}
+	err = os.Rename(d.ft, d.fd)
+
+	return
 }
 
 func (d *Dumper) init() {
@@ -71,4 +125,43 @@ func (d *Dumper) init() {
 	d.dir = d.Directory
 	d.mask = d.FileMask
 	d.sz = 0
+	if d.bs > 0 {
+		d.buf = make([]byte, 0, d.bs)
+	}
+}
+
+func (d *Dumper) flushBuf() (err error) {
+	lo, hi := 4, len(d.buf)
+	if d.f == nil {
+		d.buf = append(d.buf, d.dir...)
+		d.buf = append(d.buf, os.PathSeparator)
+		if d.buf, err = clock.AppendFormat(d.buf, d.mask, time.Now()); err != nil {
+			return
+		}
+		filepath := fastconv.B2S(d.buf[hi:])
+		d.fd = bytealg.CopyStr(filepath)
+		d.buf = append(d.buf, ".tmp"...)
+		filepathTmp := fastconv.B2S(d.buf[hi:])
+		d.ft = bytealg.CopyStr(filepathTmp)
+		if d.f, err = os.Create(filepathTmp); err != nil {
+			return
+		}
+		lo = 0
+	}
+
+	p := d.buf[lo:hi]
+	for len(p) >= flushChunkSize {
+		if _, err = d.f.Write(p[:flushChunkSize]); err != nil {
+			return
+		}
+		p = p[flushChunkSize:]
+	}
+	if len(p) > 0 {
+		if _, err = d.f.Write(p); err != nil {
+			return
+		}
+	}
+	d.buf = d.buf[:4]
+
+	return
 }
