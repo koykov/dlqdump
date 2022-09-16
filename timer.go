@@ -34,7 +34,7 @@ func (t *timer) wait(queue *Queue) {
 		}
 		switch signal {
 		case timerReach:
-			_ = queue.flush(flushReasonTimeLimit)
+			_ = queue.flush(flushReasonInterval)
 		case timerReset:
 			break
 		case timerStop:

@@ -2,7 +2,7 @@ package dlqdump
 
 const (
 	flushReasonSize flushReason = iota
-	flushReasonTimeLimit
+	flushReasonInterval
 	flushReasonForce
 )
 
@@ -35,8 +35,8 @@ func (r flushReason) String() string {
 	switch r {
 	case flushReasonSize:
 		return "size limit"
-	case flushReasonTimeLimit:
-		return "time limit"
+	case flushReasonInterval:
+		return "reach interval"
 	case flushReasonForce:
 		return "force"
 	default:
