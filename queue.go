@@ -4,10 +4,16 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/koykov/bitset"
 	"github.com/koykov/blqueue"
 )
 
+const (
+	flagTimer = 0
+)
+
 type Queue struct {
+	bitset.Bitset
 	config *Config
 	status blqueue.Status
 
@@ -39,6 +45,11 @@ func (q *Queue) Enqueue(x interface{}) (err error) {
 	q.buf, err = q.config.Encoder.Encode(q.buf[:0], x)
 	if err != nil {
 		return
+	}
+
+	if !q.CheckBit(flagTimer) {
+		q.SetBit(flagTimer, true)
+		go q.timer.wait(q)
 	}
 
 	if _, err = q.config.Dumper.Dump(q.config.Version, q.buf); err != nil {
