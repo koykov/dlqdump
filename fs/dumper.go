@@ -96,13 +96,13 @@ func (d *Dumper) Flush() (err error) {
 		}
 	}
 	d.buf = d.buf[:0]
-	d.f = nil
 	atomic.StoreUint64(&d.sz, 0)
 
 	if err = d.f.Close(); err != nil {
 		return
 	}
 	err = os.Rename(d.ft, d.fd)
+	d.f = nil
 
 	return
 }
