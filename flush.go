@@ -24,7 +24,11 @@ func (q *Queue) flushLF(reason flushReason) (err error) {
 	}
 
 	size := q.config.Dumper.Size()
-	err = q.config.Dumper.Flush()
+	if size > 0 {
+		if err = q.config.Dumper.Flush(); err != nil {
+			return
+		}
+	}
 
 	q.config.MetricsWriter.QueueFlush(q.config.Key, reason.String(), int(size))
 

@@ -55,6 +55,7 @@ func (q *Queue) Enqueue(x interface{}) (err error) {
 	if _, err = q.config.Dumper.Dump(q.config.Version, q.buf); err != nil {
 		return
 	}
+	q.buf = q.buf[:0]
 
 	if q.config.Dumper.Size() >= q.config.Capacity {
 		q.timer.reset()
