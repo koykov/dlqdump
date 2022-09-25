@@ -1,6 +1,7 @@
 package dlqdump
 
-// DRC represents [scheduled] dump recycle control.
+// DRC represents dump recycle control.
+// DRC may be scheduled (see DRConfig.CheckInterval).
 type DRC struct {
 	config *DRConfig
 }
