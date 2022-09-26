@@ -1,12 +1,12 @@
 package dlqdump
 
 // DRC represents dump recycle control.
-// DRC may be scheduled (see DRConfig.CheckInterval).
+// DRC may be scheduled (see DRCConfig.CheckInterval).
 type DRC struct {
-	config *DRConfig
+	config *DRCConfig
 }
 
-func NewDRC(config *DRConfig) (*DRC, error) {
+func NewDRC(config *DRCConfig) (*DRC, error) {
 	drc := &DRC{
 		config: config.Copy(),
 	}

@@ -13,17 +13,24 @@ const (
 	defaultWaitInterval = time.Second
 )
 
-// DRConfig represents DRC/sDRC config.
-type DRConfig struct {
-	// Destination queue to restore dump.
+// DRCConfig represents DRC/sDRC config.
+type DRCConfig struct {
+	// Dump version. Must be changed at any change of Decoder param.
+	Version uint32
+	// Unique queue key. Indicates queue in logs and metrics.
 	// Mandatory param.
-	Queue blqueue.Interface
-	// Decoder helper to convert bytes to item.
-	// Mandatory param.
-	Decoder Decoder
+	Key string
+
 	// Helper to achieve data from dump.
 	// Mandatory param.
 	Restorer Restorer
+	// Decoder helper to convert bytes to item.
+	// Mandatory param.
+	Decoder Decoder
+	// Destination queue to restore dump.
+	// Mandatory param.
+	Queue blqueue.Interface
+
 	// Duration between check fresh data in dump.
 	// This param enables scheduled feature.
 	CheckInterval time.Duration
@@ -33,9 +40,12 @@ type DRConfig struct {
 	// Queue rate that forbids or allows put data from dump the Destination queue.
 	// If this param omit defaultAllowRate (95%) will use instead.
 	AllowRate float32
+
+	// Logger handler.
+	Logger blqueue.Logger
 }
 
-func (c *DRConfig) Copy() *DRConfig {
+func (c *DRCConfig) Copy() *DRCConfig {
 	cpy := *c
 	return &cpy
 }
