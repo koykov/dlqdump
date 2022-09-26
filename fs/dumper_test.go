@@ -10,7 +10,7 @@ import (
 
 func TestDumper(t *testing.T) {
 	t.Run("force", func(t *testing.T) {
-		q, err := dlqdump.New(&dlqdump.Config{
+		q, err := dlqdump.NewDLQ(&dlqdump.DLQConfig{
 			Version:  0,
 			Key:      "stage0",
 			Capacity: dlqdump.Byte * 512,
@@ -34,7 +34,7 @@ func TestDumper(t *testing.T) {
 		}
 	})
 	t.Run("size", func(t *testing.T) {
-		q, err := dlqdump.New(&dlqdump.Config{
+		q, err := dlqdump.NewDLQ(&dlqdump.DLQConfig{
 			Version:  0,
 			Key:      "stage0",
 			Capacity: dlqdump.Byte * 32,
@@ -57,7 +57,7 @@ func TestDumper(t *testing.T) {
 		}
 	})
 	t.Run("timer", func(t *testing.T) {
-		q, err := dlqdump.New(&dlqdump.Config{
+		q, err := dlqdump.NewDLQ(&dlqdump.DLQConfig{
 			Version:       0,
 			Key:           "stage0",
 			Capacity:      dlqdump.Byte * 512,

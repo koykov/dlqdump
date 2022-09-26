@@ -11,7 +11,7 @@ const (
 	defaultTimeLimit = time.Second * 30
 )
 
-type Config struct {
+type DLQConfig struct {
 	// Dump version. Must be changed at any change of Encoder and/or Decoder params.
 	Version uint32
 	// Unique queue key. Indicates queue in logs and metrics.
@@ -42,7 +42,7 @@ type Config struct {
 
 // Copy copies config instance to protect queue from changing params after start.
 // It means that after starting queue all config modifications will have no effect.
-func (c *Config) Copy() *Config {
+func (c *DLQConfig) Copy() *DLQConfig {
 	cpy := *c
 	return &cpy
 }
