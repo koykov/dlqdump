@@ -18,6 +18,9 @@ type DRConfig struct {
 	// Destination queue to restore dump.
 	// Mandatory param.
 	Queue blqueue.Interface
+	// Decoder helper to convert bytes to item.
+	// Mandatory param.
+	Decoder Decoder
 	// Helper to achieve data from dump.
 	// Mandatory param.
 	Restorer Restorer
