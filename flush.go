@@ -8,7 +8,7 @@ const (
 
 type flushReason uint8
 
-func (q *DLQ) flush(reason flushReason) error {
+func (q *Queue) flush(reason flushReason) error {
 	q.mux.Lock()
 	defer q.mux.Unlock()
 	if reason == flushReasonForce {
@@ -17,7 +17,7 @@ func (q *DLQ) flush(reason flushReason) error {
 	return q.flushLF(reason)
 }
 
-func (q *DLQ) flushLF(reason flushReason) (err error) {
+func (q *Queue) flushLF(reason flushReason) (err error) {
 	if l := q.config.Logger; l != nil {
 		msg := "queue #%s flush by reason '%s'"
 		l.Printf(msg, q.config.Key, reason)

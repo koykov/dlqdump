@@ -23,7 +23,7 @@ func newTimer() *timer {
 	return &t
 }
 
-func (t *timer) wait(queue *DLQ) {
+func (t *timer) wait(queue *Queue) {
 	time.AfterFunc(queue.config.FlushInterval, func() {
 		queue.timer.reach()
 	})

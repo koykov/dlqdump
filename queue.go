@@ -12,9 +12,9 @@ const (
 	flagTimer = 0
 )
 
-type DLQ struct {
+type Queue struct {
 	bitset.Bitset
-	config *DLQConfig
+	config *Config
 	status blqueue.Status
 
 	once  sync.Once
@@ -25,15 +25,15 @@ type DLQ struct {
 	Err error
 }
 
-func NewDLQ(config *DLQConfig) (*DLQ, error) {
-	q := &DLQ{
+func NewQueue(config *Config) (*Queue, error) {
+	q := &Queue{
 		config: config.Copy(),
 	}
 	q.once.Do(q.init)
 	return q, q.Err
 }
 
-func (q *DLQ) Enqueue(x interface{}) (err error) {
+func (q *Queue) Enqueue(x interface{}) (err error) {
 	q.once.Do(q.init)
 	if status := q.getStatus(); status == blqueue.StatusClose || status == blqueue.StatusFail {
 		return blqueue.ErrQueueClosed
@@ -65,22 +65,22 @@ func (q *DLQ) Enqueue(x interface{}) (err error) {
 	return
 }
 
-func (q *DLQ) Size() int {
+func (q *Queue) Size() int {
 	if q.config.Writer == nil {
 		return 0
 	}
 	return int(q.config.Writer.Size())
 }
 
-func (q *DLQ) Capacity() int {
+func (q *Queue) Capacity() int {
 	return int(q.config.Capacity)
 }
 
-func (q *DLQ) Rate() float32 {
+func (q *Queue) Rate() float32 {
 	return 0
 }
 
-func (q *DLQ) Close() error {
+func (q *Queue) Close() error {
 	if q.getStatus() == blqueue.StatusClose {
 		return blqueue.ErrQueueClosed
 	}
@@ -100,7 +100,7 @@ func (q *DLQ) Close() error {
 	return nil
 }
 
-func (q *DLQ) init() {
+func (q *Queue) init() {
 	c := q.config
 
 	if len(c.Key) == 0 {
@@ -135,10 +135,10 @@ func (q *DLQ) init() {
 	q.setStatus(blqueue.StatusActive)
 }
 
-func (q *DLQ) setStatus(status blqueue.Status) {
+func (q *Queue) setStatus(status blqueue.Status) {
 	atomic.StoreUint32((*uint32)(&q.status), uint32(status))
 }
 
-func (q *DLQ) getStatus() blqueue.Status {
+func (q *Queue) getStatus() blqueue.Status {
 	return blqueue.Status(atomic.LoadUint32((*uint32)(&q.status)))
 }

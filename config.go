@@ -9,9 +9,13 @@ import (
 const (
 	// Default time limit to flush the data.
 	defaultTimeLimit = time.Second * 30
+	// Default rate limit that allows restore.
+	defaultAllowRate = .95
+	// Default delay if restore allow rate limit exceeds.
+	defaultWaitInterval = time.Second
 )
 
-type DLQConfig struct {
+type Config struct {
 	// Write version. Must be changed at any change of Encoder param.
 	Version Version
 	// Unique queue key. Indicates queue in logs and metrics.
@@ -32,6 +36,16 @@ type DLQConfig struct {
 	// Mandatory param.
 	Writer Writer
 
+	// Helper to achieve data from dump.
+	// Mandatory param.
+	Restorer Restorer
+	// Decoder helper to convert bytes to item.
+	// Mandatory param.
+	Decoder Decoder
+	// Destination queue to restore dump.
+	// Mandatory param.
+	Queue blqueue.Interface
+
 	// Metrics writer handler.
 	MetricsWriter MetricsWriter
 
@@ -41,7 +55,7 @@ type DLQConfig struct {
 
 // Copy copies config instance to protect queue from changing params after start.
 // It means that after starting queue all config modifications will have no effect.
-func (c *DLQConfig) Copy() *DLQConfig {
+func (c *Config) Copy() *Config {
 	cpy := *c
 	return &cpy
 }

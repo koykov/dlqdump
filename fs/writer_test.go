@@ -8,9 +8,9 @@ import (
 	"github.com/koykov/dlqdump/encoder"
 )
 
-func TestDumper(t *testing.T) {
+func TestWriter(t *testing.T) {
 	t.Run("force", func(t *testing.T) {
-		q, err := dlqdump.NewDLQ(&dlqdump.DLQConfig{
+		q, err := dlqdump.NewQueue(&dlqdump.Config{
 			Version:  dlqdump.ParseVersion("1.0"),
 			Key:      "stage0",
 			Capacity: dlqdump.Byte * 512,
@@ -34,7 +34,7 @@ func TestDumper(t *testing.T) {
 		}
 	})
 	t.Run("size", func(t *testing.T) {
-		q, err := dlqdump.NewDLQ(&dlqdump.DLQConfig{
+		q, err := dlqdump.NewQueue(&dlqdump.Config{
 			Version:  dlqdump.ParseVersion("1.0"),
 			Key:      "stage0",
 			Capacity: dlqdump.Byte * 32,
@@ -57,7 +57,7 @@ func TestDumper(t *testing.T) {
 		}
 	})
 	t.Run("timer", func(t *testing.T) {
-		q, err := dlqdump.NewDLQ(&dlqdump.DLQConfig{
+		q, err := dlqdump.NewQueue(&dlqdump.Config{
 			Version:       dlqdump.ParseVersion("1.0"),
 			Key:           "stage0",
 			Capacity:      dlqdump.Byte * 512,
