@@ -16,11 +16,23 @@ const (
 )
 
 type Config struct {
+	/*
+		Common params.
+	*/
 	// Write version. Must be changed at any change of Encoder param.
 	Version Version
 	// Unique queue key. Indicates queue in logs and metrics.
 	// Mandatory param.
 	Key string
+	// Metrics writer handler.
+	MetricsWriter MetricsWriter
+	// Logger handler.
+	Logger blqueue.Logger
+
+	/*
+		Queue params.
+		Params of this group will ignore if pass to Restorer.
+	*/
 	// Max queue capacity in bytes.
 	// When dumped data will reach size, queue will flush the data.
 	Capacity MemorySize
@@ -28,7 +40,6 @@ type Config struct {
 	// After first incoming item will start the timer to flush the data when timer reach.
 	// If this param omit defaultTimeLimit (30 seconds) will use instead.
 	FlushInterval time.Duration
-
 	// Encoder helper to convert item to bytes.
 	// Will use universal encoder if omitted.
 	Encoder Encoder
@@ -36,21 +47,19 @@ type Config struct {
 	// Mandatory param.
 	Writer Writer
 
+	/*
+		Restorer params.
+		Params of this group will ignore if pass to Queue.
+	*/
 	// Helper to achieve data from dump.
 	// Mandatory param.
-	Restorer Reader
+	Reader Reader
 	// Decoder helper to convert bytes to item.
 	// Mandatory param.
 	Decoder Decoder
 	// Destination queue to restore dump.
 	// Mandatory param.
 	Queue blqueue.Interface
-
-	// Metrics writer handler.
-	MetricsWriter MetricsWriter
-
-	// Logger handler.
-	Logger blqueue.Logger
 }
 
 // Copy copies config instance to protect queue from changing params after start.
