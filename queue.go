@@ -12,6 +12,7 @@ const (
 	flagTimer = 0
 )
 
+// Queue represents dumping queue.
 type Queue struct {
 	bitset.Bitset
 	config *Config
