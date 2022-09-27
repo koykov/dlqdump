@@ -15,7 +15,7 @@ const (
 
 // DRCConfig represents DRC/sDRC config.
 type DRCConfig struct {
-	// Dump version. Must be changed at any change of Decoder param.
+	// Write version. Must be changed at any change of Decoder param.
 	Version uint32
 	// Unique queue key. Indicates queue in logs and metrics.
 	// Mandatory param.

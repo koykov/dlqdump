@@ -52,12 +52,12 @@ func (q *DLQ) Enqueue(x interface{}) (err error) {
 		go q.timer.wait(q)
 	}
 
-	if _, err = q.config.Dumper.Dump(q.config.Version, q.buf); err != nil {
+	if _, err = q.config.Writer.Write(q.config.Version, q.buf); err != nil {
 		return
 	}
 	q.buf = q.buf[:0]
 
-	if q.config.Dumper.Size() >= q.config.Capacity {
+	if q.config.Writer.Size() >= q.config.Capacity {
 		q.timer.reset()
 		err = q.flushLF(flushReasonSize)
 	}
@@ -66,10 +66,10 @@ func (q *DLQ) Enqueue(x interface{}) (err error) {
 }
 
 func (q *DLQ) Size() int {
-	if q.config.Dumper == nil {
+	if q.config.Writer == nil {
 		return 0
 	}
-	return int(q.config.Dumper.Size())
+	return int(q.config.Writer.Size())
 }
 
 func (q *DLQ) Capacity() int {
@@ -118,7 +118,7 @@ func (q *DLQ) init() {
 		q.setStatus(blqueue.StatusFail)
 		return
 	}
-	if c.Dumper == nil {
+	if c.Writer == nil {
 		q.Err = ErrNoDumper
 		q.setStatus(blqueue.StatusFail)
 		return

@@ -23,9 +23,9 @@ func (q *DLQ) flushLF(reason flushReason) (err error) {
 		l.Printf(msg, q.config.Key, reason)
 	}
 
-	size := q.config.Dumper.Size()
+	size := q.config.Writer.Size()
 	if size > 0 {
-		if err = q.config.Dumper.Flush(); err != nil {
+		if err = q.config.Writer.Flush(); err != nil {
 			return
 		}
 	}

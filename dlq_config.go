@@ -12,8 +12,8 @@ const (
 )
 
 type DLQConfig struct {
-	// Dump version. Must be changed at any change of Encoder param.
-	Version uint32
+	// Write version. Must be changed at any change of Encoder param.
+	Version Version
 	// Unique queue key. Indicates queue in logs and metrics.
 	// Mandatory param.
 	Key string
@@ -28,9 +28,9 @@ type DLQConfig struct {
 	// Encoder helper to convert item to bytes.
 	// Will use universal encoder if omitted.
 	Encoder Encoder
-	// Dumper helper to dump data to various destinations.
+	// Writer helper to dump data to various destinations.
 	// Mandatory param.
-	Dumper Dumper
+	Writer Writer
 
 	// Metrics writer handler.
 	MetricsWriter MetricsWriter

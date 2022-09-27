@@ -18,13 +18,13 @@ const (
 	flushChunkSize  = 16
 )
 
-type Dumper struct {
+type Writer struct {
 	// Max buffer size in bytes.
-	// Dumper will move buffered data to destination file on overflow.
+	// Writer will move buffered data to destination file on overflow.
 	Buffer dlqdump.MemorySize
 	// Destination directory for dump files.
 	Directory string
-	// Dump file mask.
+	// Write file mask.
 	// Supports strftime patterns (see https://github.com/koykov/clock#format).
 	// If this param omit defaultFileMask ("%Y-%m-%d--%H-%M-%S--%i.bin") will use instead.
 	FileMask string
@@ -44,7 +44,7 @@ type Dumper struct {
 	err error
 }
 
-func (d *Dumper) Dump(version uint32, p []byte) (n int, err error) {
+func (d *Writer) Write(version dlqdump.Version, p []byte) (n int, err error) {
 	if len(p) == 0 {
 		return 0, nil
 	}
@@ -59,8 +59,8 @@ func (d *Dumper) Dump(version uint32, p []byte) (n int, err error) {
 	off := len(d.buf)
 
 	if off == 0 {
-		d.buf = bytealg.GrowDelta(d.buf, 4)
-		binary.LittleEndian.PutUint32(d.buf[off:], version)
+		d.buf = bytealg.GrowDelta(d.buf, 8)
+		binary.LittleEndian.PutUint64(d.buf[off:], uint64(version))
 	}
 
 	d.buf = bytealg.GrowDelta(d.buf, 4)
@@ -78,11 +78,11 @@ func (d *Dumper) Dump(version uint32, p []byte) (n int, err error) {
 	return
 }
 
-func (d *Dumper) Size() dlqdump.MemorySize {
+func (d *Writer) Size() dlqdump.MemorySize {
 	return dlqdump.MemorySize(atomic.LoadUint64(&d.sz))
 }
 
-func (d *Dumper) Flush() (err error) {
+func (d *Writer) Flush() (err error) {
 	d.once.Do(d.init)
 	if d.err != nil {
 		return d.err
@@ -107,7 +107,7 @@ func (d *Dumper) Flush() (err error) {
 	return
 }
 
-func (d *Dumper) init() {
+func (d *Writer) init() {
 	d.err = nil
 	if len(d.Directory) == 0 {
 		d.err = dlqdump.ErrNoDestinationDir
@@ -130,7 +130,7 @@ func (d *Dumper) init() {
 	}
 }
 
-func (d *Dumper) flushBuf() (err error) {
+func (d *Writer) flushBuf() (err error) {
 	lo, hi := 4, len(d.buf)
 	if d.f == nil {
 		d.buf = append(d.buf, d.dir...)

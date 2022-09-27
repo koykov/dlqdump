@@ -11,11 +11,11 @@ import (
 func TestDumper(t *testing.T) {
 	t.Run("force", func(t *testing.T) {
 		q, err := dlqdump.NewDLQ(&dlqdump.DLQConfig{
-			Version:  0,
+			Version:  dlqdump.ParseVersion("1.0"),
 			Key:      "stage0",
 			Capacity: dlqdump.Byte * 512,
 			Encoder:  encoder.Basic{},
-			Dumper: &Dumper{
+			Writer: &Writer{
 				Directory: "testdata",
 				FileMask:  "force--%Y-%m-%d--%H-%M-%S--%N.bin",
 			},
@@ -35,11 +35,11 @@ func TestDumper(t *testing.T) {
 	})
 	t.Run("size", func(t *testing.T) {
 		q, err := dlqdump.NewDLQ(&dlqdump.DLQConfig{
-			Version:  0,
+			Version:  dlqdump.ParseVersion("1.0"),
 			Key:      "stage0",
 			Capacity: dlqdump.Byte * 32,
 			Encoder:  encoder.Basic{},
-			Dumper: &Dumper{
+			Writer: &Writer{
 				Directory: "testdata",
 				FileMask:  "size--%Y-%m-%d--%H-%M-%S--%N.bin",
 			},
@@ -58,12 +58,12 @@ func TestDumper(t *testing.T) {
 	})
 	t.Run("timer", func(t *testing.T) {
 		q, err := dlqdump.NewDLQ(&dlqdump.DLQConfig{
-			Version:       0,
+			Version:       dlqdump.ParseVersion("1.0"),
 			Key:           "stage0",
 			Capacity:      dlqdump.Byte * 512,
 			FlushInterval: time.Millisecond * 10,
 			Encoder:       encoder.Basic{},
-			Dumper: &Dumper{
+			Writer: &Writer{
 				Directory: "testdata",
 				FileMask:  "timer--%Y-%m-%d--%H-%M-%S--%N.bin",
 			},
