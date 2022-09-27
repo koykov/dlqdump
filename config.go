@@ -38,7 +38,7 @@ type Config struct {
 
 	// Helper to achieve data from dump.
 	// Mandatory param.
-	Restorer Restorer
+	Restorer Reader
 	// Decoder helper to convert bytes to item.
 	// Mandatory param.
 	Decoder Decoder
