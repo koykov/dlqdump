@@ -31,7 +31,7 @@ type Config struct {
 
 	/*
 		Queue params.
-		Params of this group will ignore if pass to Restorer.
+		Params of this group will ignore by Restorer.
 	*/
 	// Max queue capacity in bytes.
 	// When dumped data will reach size, queue will flush the data.
@@ -49,7 +49,7 @@ type Config struct {
 
 	/*
 		Restorer params.
-		Params of this group will ignore if pass to Queue.
+		Params of this group will ignore by Queue.
 	*/
 	// Helper to achieve data from dump.
 	// Mandatory param.
