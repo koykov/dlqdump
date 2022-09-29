@@ -30,7 +30,7 @@ func (q *Queue) flushLF(reason flushReason) (err error) {
 		}
 	}
 
-	q.config.MetricsWriter.DumpFlush(q.config.Key, reason.String(), int(size))
+	q.config.MetricsWriter.Flush(q.config.Key, reason.String(), int(size))
 
 	return
 }
