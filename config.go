@@ -8,7 +8,7 @@ import (
 
 const (
 	// Default time limit to flush the data.
-	defaultTimeLimit = time.Second * 30
+	defaultFlushInterval = time.Second * 30
 	// Default rate limit that allows restore.
 	defaultAllowRate = .95
 	// Default delay if restore allow rate limit exceeds.
@@ -38,7 +38,7 @@ type Config struct {
 	Capacity MemorySize
 	// Wait duration until flush the data.
 	// After first incoming item will start the timer to flush the data when timer reach.
-	// If this param omit defaultTimeLimit (30 seconds) will use instead.
+	// If this param omit defaultFlushInterval (30 seconds) will use instead.
 	FlushInterval time.Duration
 	// Encoder helper to convert item to bytes.
 	// Will use universal encoder if omitted.
@@ -51,6 +51,12 @@ type Config struct {
 		Restorer params.
 		Params of this group will ignore by Queue.
 	*/
+	// Wait duration between restore attempts.
+	// If this param omit defaultWaitInterval (1 second) will use instead.
+	WaitInterval time.Duration
+	// Queue rate that allows restore.
+	// If this param omit defaultAllowRate (95%) will use instead.
+	AllowRate float32
 	// Helper to achieve data from dump.
 	// Mandatory param.
 	Reader Reader

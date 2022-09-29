@@ -120,12 +120,12 @@ func (q *Queue) init() {
 		return
 	}
 	if c.Writer == nil {
-		q.Err = ErrNoDumper
+		q.Err = ErrNoWriter
 		q.setStatus(blqueue.StatusFail)
 		return
 	}
 	if c.FlushInterval == 0 {
-		c.FlushInterval = defaultTimeLimit
+		c.FlushInterval = defaultFlushInterval
 	}
 	q.timer = newTimer()
 
