@@ -3,5 +3,6 @@ package fs
 import "errors"
 
 var (
-	ErrDirNoWR = errors.New("directory doesn't exists or writable")
+	ErrNoDestinationDir = errors.New("no destination directory provided")
+	ErrDirNoWR          = errors.New("directory doesn't exists or writable")
 )

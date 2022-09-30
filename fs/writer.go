@@ -110,7 +110,7 @@ func (d *Writer) Flush() (err error) {
 func (d *Writer) init() {
 	d.err = nil
 	if len(d.Directory) == 0 {
-		d.err = dlqdump.ErrNoDestinationDir
+		d.err = ErrNoDestinationDir
 		return
 	}
 	if !isDirWR(d.Directory) {
