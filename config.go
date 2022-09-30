@@ -12,7 +12,7 @@ const (
 	// Default rate limit that allows restore.
 	defaultAllowRate = .95
 	// Default delay if restore allow rate limit exceeds.
-	defaultWaitInterval = time.Second
+	defaultCheckInterval = time.Second
 )
 
 type Config struct {
@@ -51,9 +51,12 @@ type Config struct {
 		Restorer params.
 		Params of this group will ignore by Queue.
 	*/
-	// Wait duration between restore attempts.
+	// Interval between restore attempts.
 	// If this param omit defaultWaitInterval (1 second) will use instead.
-	WaitInterval time.Duration
+	CheckInterval time.Duration
+	// Wait duration if queue rate exceeds AllowRate.
+	// If this param omit CheckInterval will use instead.
+	PostponeInterval time.Duration
 	// Queue rate that allows restore.
 	// If this param omit defaultAllowRate (95%) will use instead.
 	AllowRate float32
