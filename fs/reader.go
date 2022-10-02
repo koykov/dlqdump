@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"io"
 	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/koykov/bytealg"
@@ -31,7 +32,16 @@ func (r *Reader) Read(dst []byte) (dlqdump.Version, []byte, error) {
 
 	var err error
 	if r.f == nil {
-		if r.f, err = os.OpenFile("", os.O_RDONLY, 0644); err != nil {
+		var matches []string
+		if matches, err = filepath.Glob(r.mask); err != nil {
+			return 0, dst, err
+		}
+		if len(matches) == 0 {
+			return 0, dst, io.EOF
+		}
+
+		filename := matches[0]
+		if r.f, err = os.OpenFile(filename, os.O_RDONLY, 0644); err != nil {
 			return 0, dst, err
 		}
 		r.buf = bytealg.Grow(r.buf, 8)
@@ -61,6 +71,7 @@ func (r *Reader) init() {
 func (r *Reader) wrapErr(err error) error {
 	if err == io.EOF {
 		r.f = nil
+		r.ver = 0
 	}
 	return err
 }
