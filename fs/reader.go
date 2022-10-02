@@ -36,19 +36,19 @@ func (r *Reader) Read(dst []byte) (dlqdump.Version, []byte, error) {
 		}
 		r.buf = bytealg.Grow(r.buf, 8)
 		if _, err = io.ReadAtLeast(r.f, r.buf, 8); err != nil {
-			return 0, dst, err
+			return 0, dst, r.wrapErr(err)
 		}
 		r.ver = dlqdump.Version(binary.LittleEndian.Uint64(r.buf))
 	}
 
 	r.buf = bytealg.Grow(r.buf, 4)
 	if _, err = io.ReadAtLeast(r.f, r.buf, 4); err != nil {
-		return r.ver, dst, err
+		return r.ver, dst, r.wrapErr(err)
 	}
 	pl := binary.LittleEndian.Uint32(r.buf)
 	r.buf = bytealg.Grow(r.buf, int(pl))
 	if _, err = io.ReadAtLeast(r.f, r.buf, int(pl)); err != nil {
-		return r.ver, dst, err
+		return r.ver, dst, r.wrapErr(err)
 	}
 
 	return r.ver, dst, nil
@@ -56,4 +56,11 @@ func (r *Reader) Read(dst []byte) (dlqdump.Version, []byte, error) {
 
 func (r *Reader) init() {
 	r.mask = r.MatchMask
+}
+
+func (r *Reader) wrapErr(err error) error {
+	if err == io.EOF {
+		r.f = nil
+	}
+	return err
 }
