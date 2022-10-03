@@ -94,11 +94,7 @@ func (q *Queue) Close() error {
 	q.mux.Lock()
 	defer q.mux.Unlock()
 	q.timer.stop()
-	if len(q.buf) > 4 {
-		return q.flushLF(flushReasonForce)
-	}
-
-	return nil
+	return q.flushLF(flushReasonForce)
 }
 
 func (q *Queue) init() {
