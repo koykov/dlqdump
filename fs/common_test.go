@@ -1,6 +1,9 @@
 package fs
 
-import "bytes"
+import (
+	"bytes"
+	"testing"
+)
 
 type m8r struct {
 	payload []byte
@@ -14,6 +17,16 @@ func (m m8r) MarshalTo(p []byte) (int, error) {
 	copy(p, m.payload)
 	return m.Size(), nil
 }
+
+type testq struct {
+	t *testing.T
+}
+
+func (q testq) Enqueue(x interface{}) error { return nil }
+func (q testq) Size() int                   { return 0 }
+func (q testq) Capacity() int               { return 0 }
+func (q testq) Rate() float32               { return 0 }
+func (q testq) Close() error                { return nil }
 
 var testVars []interface{}
 
