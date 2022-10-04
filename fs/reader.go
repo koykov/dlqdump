@@ -60,6 +60,7 @@ func (r *Reader) Read(dst []byte) (dlqdump.Version, []byte, error) {
 	if _, err = io.ReadAtLeast(r.f, r.buf, int(pl)); err != nil {
 		return r.ver, dst, r.wrapErr(err)
 	}
+	dst = append(dst, r.buf...)
 
 	return r.ver, dst, nil
 }
