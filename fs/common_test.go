@@ -52,7 +52,7 @@ func (q *testq) Enqueue(x interface{}) error {
 			q.t.Fatalf("index %d: value mismatch", q.c)
 		}
 	case 5:
-		if !bytes.Equal(raw, testVars[q.c].(m8r).payload) {
+		if !bytes.Equal(raw, testVars[q.c].(*m8r).payload) {
 			q.t.Fatalf("index %d: value mismatch", q.c)
 		}
 	}
