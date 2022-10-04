@@ -78,7 +78,7 @@ func (r *Restorer) Restore() error {
 			}
 			time.Sleep(r.config.PostponeInterval)
 		}
-		if err = r.config.Queue.Enqueue(x); x != nil {
+		if err = r.config.Queue.Enqueue(x); err != nil {
 			r.config.MetricsWriter.Fail(r.config.Key, "enqueue fail")
 			continue
 		}
