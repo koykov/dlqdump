@@ -15,10 +15,15 @@ type Reader struct {
 	// MatchMask represents pattern to match the names of dump files.
 	// Mandatory param.
 	MatchMask string
+	// OnEOF calls when EOF of current file reaches.
+	// If this param omit os.Remove() will use by default.
+	OnEOF func(filename string) error
 
 	once sync.Once
 	mux  sync.Mutex
 	mask string
+	eof  func(string) error
+	fn   string
 	f    *os.File
 	ver  dlqdump.Version
 	buf  []byte
@@ -40,25 +45,25 @@ func (r *Reader) Read(dst []byte) (dlqdump.Version, []byte, error) {
 			return 0, dst, io.EOF
 		}
 
-		filename := matches[0]
-		if r.f, err = os.OpenFile(filename, os.O_RDONLY, 0644); err != nil {
+		r.fn = matches[0]
+		if r.f, err = os.OpenFile(r.fn, os.O_RDONLY, 0644); err != nil {
 			return 0, dst, err
 		}
 		r.buf = bytealg.Grow(r.buf, 8)
 		if _, err = io.ReadAtLeast(r.f, r.buf, 8); err != nil {
-			return 0, dst, r.wrapErr(err)
+			return 0, dst, r.checkEOF(err)
 		}
 		r.ver = dlqdump.Version(binary.LittleEndian.Uint64(r.buf))
 	}
 
 	r.buf = bytealg.Grow(r.buf, 4)
 	if _, err = io.ReadAtLeast(r.f, r.buf, 4); err != nil {
-		return r.ver, dst, r.wrapErr(err)
+		return r.ver, dst, r.checkEOF(err)
 	}
 	pl := binary.LittleEndian.Uint32(r.buf)
 	r.buf = bytealg.Grow(r.buf, int(pl))
 	if _, err = io.ReadAtLeast(r.f, r.buf, int(pl)); err != nil {
-		return r.ver, dst, r.wrapErr(err)
+		return r.ver, dst, r.checkEOF(err)
 	}
 	dst = append(dst, r.buf...)
 
@@ -67,11 +72,17 @@ func (r *Reader) Read(dst []byte) (dlqdump.Version, []byte, error) {
 
 func (r *Reader) init() {
 	r.mask = r.MatchMask
+	if r.OnEOF == nil {
+		r.OnEOF = os.Remove
+	}
+	r.eof = r.OnEOF
 }
 
-func (r *Reader) wrapErr(err error) error {
+func (r *Reader) checkEOF(err error) error {
 	if err == io.EOF {
 		_ = r.f.Close()
+		_ = r.eof(r.fn)
+		r.fn = ""
 		r.f = nil
 		r.ver = 0
 	}

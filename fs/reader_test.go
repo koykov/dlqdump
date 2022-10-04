@@ -15,6 +15,7 @@ func TestReader(t *testing.T) {
 		CheckInterval: time.Hour, // will never happen during testing
 		Reader: &Reader{
 			MatchMask: "testdata/*.bin",
+			OnEOF:     func(_ string) error { return nil }, // dummy EOF function to keep testing dump file
 		},
 		Decoder: decoder.Fallthrough{},
 		Queue:   &testq{t: t},
