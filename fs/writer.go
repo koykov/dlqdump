@@ -61,6 +61,7 @@ func (d *Writer) Write(version dlqdump.Version, p []byte) (n int, err error) {
 	if off == 0 {
 		d.buf = bytealg.GrowDelta(d.buf, 8)
 		binary.LittleEndian.PutUint64(d.buf[off:], uint64(version))
+		off += 8
 	}
 
 	d.buf = bytealg.GrowDelta(d.buf, 4)
