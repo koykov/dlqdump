@@ -38,7 +38,7 @@ type Config struct {
 	Capacity MemorySize
 	// Wait duration until flush the data.
 	// After first incoming item will start the timer to flush the data when timer reach.
-	// If this param omit defaultFlushInterval (30 seconds) will use instead.
+	// If this param omit defaultFlushInterval (30 seconds) will use by default.
 	FlushInterval time.Duration
 	// Encoder helper to convert item to bytes.
 	// Will use universal encoder if omitted.
@@ -52,13 +52,13 @@ type Config struct {
 		Params of this group will ignore by Queue.
 	*/
 	// Interval between restore attempts.
-	// If this param omit defaultWaitInterval (1 second) will use instead.
+	// If this param omit defaultWaitInterval (1 second) will use by default.
 	CheckInterval time.Duration
 	// Wait duration if queue rate exceeds AllowRate.
 	// If this param omit CheckInterval will use instead.
 	PostponeInterval time.Duration
 	// Queue rate that allows restore.
-	// If this param omit defaultAllowRate (95%) will use instead.
+	// If this param omit defaultAllowRate (95%) will use by default.
 	AllowRate float32
 	// Helper to achieve data from dump.
 	// Mandatory param.

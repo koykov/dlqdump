@@ -26,7 +26,7 @@ type Writer struct {
 	Directory string
 	// Write file mask.
 	// Supports strftime patterns (see https://github.com/koykov/clock#format).
-	// If this param omit defaultFileMask ("%Y-%m-%d--%H-%M-%S--%i.bin") will use instead.
+	// If this param omit defaultFileMask ("%Y-%m-%d--%H-%M-%S--%i.bin") will use by default.
 	FileMask string
 
 	once sync.Once
