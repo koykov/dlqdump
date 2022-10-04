@@ -135,6 +135,9 @@ func (r *Restorer) init() {
 	if c.PostponeInterval == 0 {
 		c.PostponeInterval = c.CheckInterval
 	}
+	if c.AllowRate == 0 {
+		c.AllowRate = defaultAllowRate
+	}
 
 	if c.MetricsWriter == nil {
 		c.MetricsWriter = DummyMetrics{}
