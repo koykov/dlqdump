@@ -71,6 +71,7 @@ func (r *Reader) init() {
 
 func (r *Reader) wrapErr(err error) error {
 	if err == io.EOF {
+		_ = r.f.Close()
 		r.f = nil
 		r.ver = 0
 	}
