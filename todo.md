@@ -1,8 +1,8 @@
 # TODO
 
-* split dump queue to separate parts
+* ~~split dump queue to separate parts~~
   * ~~dumping queue~~
-  * scheduled restore component
+  * ~~scheduled restore component~~
 * ~~rename Size to Capacity~~
 * ~~rename TimeLimit to FlushInterval~~
 * ~~combine common encoding methods to one universal encoder~~
