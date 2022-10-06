@@ -26,6 +26,7 @@ func newTimer() *timer {
 func (t *timer) wait(queue *Queue) {
 	time.AfterFunc(queue.config.FlushInterval, func() {
 		queue.timer.reach()
+		queue.SetBit(flagTimer, false)
 	})
 	for {
 		signal, ok := <-t.c
