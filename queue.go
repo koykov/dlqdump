@@ -54,8 +54,11 @@ func (q *Queue) Enqueue(x interface{}) (err error) {
 	}
 
 	if _, err = q.config.Writer.Write(q.config.Version, q.buf); err != nil {
+		q.config.MetricsWriter.Fail(q.config.Key, "write fail")
 		return
 	}
+	q.config.MetricsWriter.Dump(q.config.Key, len(q.buf))
+
 	q.buf = q.buf[:0]
 
 	if q.config.Writer.Size() >= q.config.Capacity {

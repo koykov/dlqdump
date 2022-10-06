@@ -82,6 +82,7 @@ func (r *Restorer) Restore() error {
 			r.config.MetricsWriter.Fail(r.config.Key, "enqueue fail")
 			continue
 		}
+		r.config.MetricsWriter.Restore(r.config.Key, len(r.buf))
 	}
 	return nil
 }
