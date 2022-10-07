@@ -51,7 +51,7 @@ func (q *Queue) Enqueue(x interface{}) (err error) {
 	defer q.mux.Unlock()
 
 	// Encode item to bytes.
-	q.buf, err = q.config.Encoder.Encode(q.buf[:0], x)
+	q.buf, err = q.c().Encoder.Encode(q.buf[:0], x)
 	if err != nil {
 		return
 	}
@@ -64,16 +64,16 @@ func (q *Queue) Enqueue(x interface{}) (err error) {
 	}
 
 	// Forward encoded item to writer.
-	if _, err = q.config.Writer.Write(q.config.Version, q.buf); err != nil {
-		q.config.MetricsWriter.Fail(q.config.Key, "write fail")
+	if _, err = q.c().Writer.Write(q.c().Version, q.buf); err != nil {
+		q.m().Fail(q.c().Key, "write fail")
 		return
 	}
-	q.config.MetricsWriter.Dump(q.config.Key, len(q.buf))
+	q.m().Dump(q.c().Key, len(q.buf))
 
 	q.buf = q.buf[:0]
 
 	// Check if Config.Capacity reached.
-	if q.config.Writer.Size() >= q.config.Capacity {
+	if q.c().Writer.Size() >= q.c().Capacity {
 		// Reset timer and flush with corresponding reason.
 		q.timer.reset()
 		err = q.flushLF(flushReasonSize)
@@ -84,15 +84,15 @@ func (q *Queue) Enqueue(x interface{}) (err error) {
 
 // Size returns actual size in bytes of all queued items (since start or last flush).
 func (q *Queue) Size() int {
-	if q.config.Writer == nil {
+	if q.c().Writer == nil {
 		return 0
 	}
-	return int(q.config.Writer.Size())
+	return int(q.c().Writer.Size())
 }
 
 // Capacity returns maximum queue capacity.
 func (q *Queue) Capacity() int {
-	return int(q.config.Capacity)
+	return int(q.c().Capacity)
 }
 
 // Rate returns size to capacity ratio.
@@ -106,9 +106,9 @@ func (q *Queue) Close() error {
 		return blqueue.ErrQueueClosed
 	}
 
-	if l := q.config.Logger; l != nil {
+	if l := q.l(); l != nil {
 		msg := "queue #%s caught close signal"
-		l.Printf(msg, q.config.Key)
+		l.Printf(msg, q.c().Key)
 	}
 
 	q.mux.Lock()
@@ -119,7 +119,7 @@ func (q *Queue) Close() error {
 
 // Init the queue.
 func (q *Queue) init() {
-	c := q.config
+	c := q.c()
 
 	// Check mandatory params.
 	if len(c.Key) == 0 {
@@ -166,4 +166,16 @@ func (q *Queue) setStatus(status blqueue.Status) {
 // Get status of the queue.
 func (q *Queue) getStatus() blqueue.Status {
 	return blqueue.Status(atomic.LoadUint32((*uint32)(&q.status)))
+}
+
+func (q *Queue) c() *Config {
+	return q.config
+}
+
+func (q *Queue) m() MetricsWriter {
+	return q.config.MetricsWriter
+}
+
+func (q *Queue) l() blqueue.Logger {
+	return q.config.Logger
 }
