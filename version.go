@@ -6,8 +6,10 @@ import (
 	"strings"
 )
 
+// Version represent simple version container.
 type Version uint64
 
+// NewVersion composes version from given parts.
 func NewVersion(major, minor, patch, revision uint16) Version {
 	var v uint64
 	v = v | uint64(major)<<48
@@ -17,6 +19,9 @@ func NewVersion(major, minor, patch, revision uint16) Version {
 	return Version(v)
 }
 
+// ParseVersion makes new version from source string.
+//
+// See version_test.go for examples.
 func ParseVersion(ver string) Version {
 	var m, n, p, r uint16
 	c := 0
