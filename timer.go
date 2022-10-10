@@ -5,14 +5,15 @@ import (
 	"time"
 )
 
+type timerSignal uint8
+
 const (
 	timerReach timerSignal = iota
 	timerReset
 	timerStop
 )
 
-type timerSignal uint8
-
+// Internal timer implementation.
 type timer struct {
 	c chan timerSignal
 	s uint32
@@ -23,6 +24,7 @@ func newTimer() *timer {
 	return &t
 }
 
+// Background waiter method.
 func (t *timer) wait(queue *Queue) {
 	time.AfterFunc(queue.config.FlushInterval, func() {
 		queue.timer.reach()
@@ -46,6 +48,7 @@ func (t *timer) wait(queue *Queue) {
 	}
 }
 
+// Send time reach signal.
 func (t *timer) reach() {
 	if atomic.LoadUint32(&t.s) != 0 {
 		return
@@ -53,6 +56,7 @@ func (t *timer) reach() {
 	t.c <- timerReach
 }
 
+// Send reset signal.
 func (t *timer) reset() {
 	if atomic.LoadUint32(&t.s) != 0 {
 		return
@@ -60,6 +64,7 @@ func (t *timer) reset() {
 	t.c <- timerReset
 }
 
+// Send stop signal.
 func (t *timer) stop() {
 	if atomic.LoadUint32(&t.s) != 0 {
 		return
