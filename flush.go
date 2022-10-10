@@ -1,13 +1,14 @@
 package dlqdump
 
+type flushReason uint8
+
 const (
 	flushReasonSize flushReason = iota
 	flushReasonInterval
 	flushReasonForce
 )
 
-type flushReason uint8
-
+// Flush data collected in the queue.
 func (q *Queue) flush(reason flushReason) error {
 	q.mux.Lock()
 	defer q.mux.Unlock()
@@ -17,6 +18,7 @@ func (q *Queue) flush(reason flushReason) error {
 	return q.flushLF(reason)
 }
 
+// Lock-free version of flush method.
 func (q *Queue) flushLF(reason flushReason) (err error) {
 	if l := q.config.Logger; l != nil {
 		msg := "queue #%s flush by reason '%s'"
