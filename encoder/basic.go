@@ -7,6 +7,13 @@ import (
 	"github.com/koykov/dlqdump"
 )
 
+// Basic represents encoder for basic cases:
+// * string
+// * byte slice
+// * Stringer
+// * Byter
+// * Marshaller
+// * MarshallerTo
 type Basic struct{}
 
 func (e Basic) Encode(dst []byte, x interface{}) ([]byte, error) {
