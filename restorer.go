@@ -17,12 +17,12 @@ type Restorer struct {
 
 	once sync.Once
 	lock uint32
-	mux  sync.Mutex
 	buf  []byte
 
 	Err error
 }
 
+// NewRestorer makes new restorer instance and initialize it according config params.
 func NewRestorer(config *Config) (*Restorer, error) {
 	r := &Restorer{
 		config: config.Copy(),
@@ -31,6 +31,7 @@ func NewRestorer(config *Config) (*Restorer, error) {
 	return r, nil
 }
 
+// Restore makes an attempt of restoring operation.
 func (r *Restorer) Restore() error {
 	r.once.Do(r.init)
 	if status := r.getStatus(); status == blqueue.StatusClose || status == blqueue.StatusFail {
@@ -52,9 +53,11 @@ func (r *Restorer) Restore() error {
 			return blqueue.ErrQueueClosed
 		}
 
+		// Check reader for new encoded items.
 		r.buf = r.buf[:0]
 		ver, r.buf, err = r.config.Reader.Read(r.buf)
 		if err == io.EOF {
+			// EOF reached, finish current restore attempt.
 			err = nil
 			break
 		}
@@ -67,17 +70,20 @@ func (r *Restorer) Restore() error {
 			continue
 		}
 
+		// Decode item.
 		var x interface{}
 		if x, err = r.config.Decoder.Decode(r.buf); err != nil {
 			r.config.MetricsWriter.Fail(r.config.Key, "decode error")
 			continue
 		}
+		// Spin until destination queue rate is too big.
 		for r.config.Queue.Rate() > r.config.AllowRate {
 			if r.getStatus() == blqueue.StatusClose {
 				return blqueue.ErrQueueClosed
 			}
 			time.Sleep(r.config.PostponeInterval)
 		}
+		// Put item to the destination queue.
 		if err = r.config.Queue.Enqueue(x); err != nil {
 			r.config.MetricsWriter.Fail(r.config.Key, "enqueue fail")
 			continue
@@ -87,10 +93,12 @@ func (r *Restorer) Restore() error {
 	return nil
 }
 
+// Close gracefully stops the restorer.
 func (r *Restorer) Close() error {
 	return r.CloseWithTimeout(time.Second * 30)
 }
 
+// CloseWithTimeout stops the queue with timeout.
 func (r *Restorer) CloseWithTimeout(timeout time.Duration) error {
 	now := time.Now()
 	for atomic.LoadUint32(&r.lock) == 1 {
@@ -102,14 +110,17 @@ func (r *Restorer) CloseWithTimeout(timeout time.Duration) error {
 	return nil
 }
 
+// ForceClose immediately stops the queue.
 func (r *Restorer) ForceClose() error {
 	r.setStatus(blqueue.StatusClose)
 	return nil
 }
 
+// Init the restorer.
 func (r *Restorer) init() {
 	c := r.config
 
+	// Check mandatory params.
 	if len(c.Key) == 0 {
 		r.Err = blqueue.ErrNoKey
 		r.setStatus(blqueue.StatusFail)
@@ -130,6 +141,8 @@ func (r *Restorer) init() {
 		r.setStatus(blqueue.StatusFail)
 		return
 	}
+
+	// Check non-mandatory params and set default values if needed.
 	if c.CheckInterval == 0 {
 		c.CheckInterval = defaultCheckInterval
 	}
@@ -144,8 +157,10 @@ func (r *Restorer) init() {
 		c.MetricsWriter = DummyMetrics{}
 	}
 
+	// Restorer is ready!
 	r.setStatus(blqueue.StatusActive)
 
+	// Init background check ticker.
 	ticker := time.NewTicker(c.CheckInterval)
 	go func() {
 		for {
