@@ -18,6 +18,7 @@ const (
 	flushChunkSize  = 16
 )
 
+// Writer is file system implementation of dlqdump.Writer interface.
 type Writer struct {
 	// Max buffer size in bytes.
 	// Writer will move buffered data to destination file on overflow.
@@ -59,18 +60,22 @@ func (d *Writer) Write(version dlqdump.Version, p []byte) (n int, err error) {
 	off := len(d.buf)
 
 	if off == 0 {
+		// First write, encode version to header.
 		d.buf = bytealg.GrowDelta(d.buf, 8)
 		binary.LittleEndian.PutUint64(d.buf[off:], uint64(version))
 		off += 8
 	}
 
+	// Write item length.
 	d.buf = bytealg.GrowDelta(d.buf, 4)
 	binary.LittleEndian.PutUint32(d.buf[off:], uint32(len(p)))
+	// Write item body.
 	d.buf = append(d.buf, p...)
 	n = len(d.buf) - off
 	atomic.AddUint64(&d.sz, uint64(n))
 
 	if dlqdump.MemorySize(len(d.buf)) >= d.bs {
+		// Buffer size reached limit, so flush it to the disk.
 		if err = d.flushBuf(); err != nil {
 			return
 		}
@@ -91,6 +96,7 @@ func (d *Writer) Flush() (err error) {
 
 	d.mux.Lock()
 	defer d.mux.Unlock()
+	// Flush buffered data and clear buffer.
 	if len(d.buf) > 0 {
 		if err = d.flushBuf(); err != nil {
 			return
@@ -99,6 +105,7 @@ func (d *Writer) Flush() (err error) {
 	d.buf = d.buf[:0]
 	atomic.StoreUint64(&d.sz, 0)
 
+	// Close file and rename temporary file.
 	if err = d.f.Close(); err != nil {
 		return
 	}

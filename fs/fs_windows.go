@@ -1,5 +1,7 @@
 package fs
 
+// Windows file system functions.
+
 import "os"
 
 func isDirWR(path string) bool {

@@ -1,5 +1,7 @@
 //go:build !windows
 
+// Unix file system functions.
+
 package fs
 
 import (
