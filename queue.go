@@ -5,7 +5,7 @@ import (
 	"sync/atomic"
 
 	"github.com/koykov/bitset"
-	"github.com/koykov/blqueue"
+	"github.com/koykov/queue"
 )
 
 const (
@@ -18,7 +18,7 @@ type Queue struct {
 	// Config instance.
 	config *Config
 	// Actual queue status.
-	status blqueue.Status
+	status queue.Status
 
 	once sync.Once
 
@@ -43,8 +43,8 @@ func NewQueue(config *Config) (*Queue, error) {
 // Enqueue puts x to the queue.
 func (q *Queue) Enqueue(x interface{}) (err error) {
 	q.once.Do(q.init)
-	if status := q.getStatus(); status == blqueue.StatusClose || status == blqueue.StatusFail {
-		return blqueue.ErrQueueClosed
+	if status := q.getStatus(); status == queue.StatusClose || status == queue.StatusFail {
+		return queue.ErrQueueClosed
 	}
 
 	q.mux.Lock()
@@ -102,8 +102,8 @@ func (q *Queue) Rate() float32 {
 
 // Close gracefully stops the queue.
 func (q *Queue) Close() error {
-	if q.getStatus() == blqueue.StatusClose {
-		return blqueue.ErrQueueClosed
+	if q.getStatus() == queue.StatusClose {
+		return queue.ErrQueueClosed
 	}
 
 	if l := q.l(); l != nil {
@@ -123,23 +123,23 @@ func (q *Queue) init() {
 
 	// Check mandatory params.
 	if len(c.Key) == 0 {
-		q.Err = blqueue.ErrNoKey
-		q.setStatus(blqueue.StatusFail)
+		q.Err = queue.ErrNoKey
+		q.setStatus(queue.StatusFail)
 		return
 	}
 	if c.Capacity == 0 {
-		q.Err = blqueue.ErrNoSize
-		q.setStatus(blqueue.StatusFail)
+		q.Err = queue.ErrNoSize
+		q.setStatus(queue.StatusFail)
 		return
 	}
 	if c.Encoder == nil {
 		q.Err = ErrNoEncoder
-		q.setStatus(blqueue.StatusFail)
+		q.setStatus(queue.StatusFail)
 		return
 	}
 	if c.Writer == nil {
 		q.Err = ErrNoWriter
-		q.setStatus(blqueue.StatusFail)
+		q.setStatus(queue.StatusFail)
 		return
 	}
 
@@ -155,17 +155,17 @@ func (q *Queue) init() {
 	}
 
 	// Queue is ready!
-	q.setStatus(blqueue.StatusActive)
+	q.setStatus(queue.StatusActive)
 }
 
 // Set status of the queue.
-func (q *Queue) setStatus(status blqueue.Status) {
+func (q *Queue) setStatus(status queue.Status) {
 	atomic.StoreUint32((*uint32)(&q.status), uint32(status))
 }
 
 // Get status of the queue.
-func (q *Queue) getStatus() blqueue.Status {
-	return blqueue.Status(atomic.LoadUint32((*uint32)(&q.status)))
+func (q *Queue) getStatus() queue.Status {
+	return queue.Status(atomic.LoadUint32((*uint32)(&q.status)))
 }
 
 func (q *Queue) c() *Config {
@@ -176,6 +176,6 @@ func (q *Queue) m() MetricsWriter {
 	return q.config.MetricsWriter
 }
 
-func (q *Queue) l() blqueue.Logger {
+func (q *Queue) l() queue.Logger {
 	return q.config.Logger
 }

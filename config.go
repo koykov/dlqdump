@@ -3,7 +3,7 @@ package dlqdump
 import (
 	"time"
 
-	"github.com/koykov/blqueue"
+	"github.com/koykov/queue"
 )
 
 const (
@@ -27,7 +27,7 @@ type Config struct {
 	// Metrics writer handler.
 	MetricsWriter MetricsWriter
 	// Logger handler.
-	Logger blqueue.Logger
+	Logger queue.Logger
 
 	/*
 		Queue params.
@@ -68,7 +68,7 @@ type Config struct {
 	Decoder Decoder
 	// Destination queue to restore dump.
 	// Mandatory param.
-	Queue blqueue.Interface
+	Queue queue.Interface
 }
 
 // Copy copies config instance to protect queue from changing params after start.

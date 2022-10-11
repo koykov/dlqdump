@@ -1,3 +1,3 @@
 # DLQ dump
 
-Dumping DLQ implementation for [blqueue](https://github.com/koykov/blqueue) package.
+Dumping DLQ implementation for [queue](https://github.com/koykov/queue) package.

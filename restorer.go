@@ -6,14 +6,14 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/koykov/blqueue"
+	"github.com/koykov/queue"
 )
 
 // Restorer represents dump restore handler.
 // Restorer may be scheduled (see Config.CheckInterval).
 type Restorer struct {
 	config *Config
-	status blqueue.Status
+	status queue.Status
 
 	once sync.Once
 	lock uint32
@@ -34,8 +34,8 @@ func NewRestorer(config *Config) (*Restorer, error) {
 // Restore makes an attempt of restoring operation.
 func (r *Restorer) Restore() error {
 	r.once.Do(r.init)
-	if status := r.getStatus(); status == blqueue.StatusClose || status == blqueue.StatusFail {
-		return blqueue.ErrQueueClosed
+	if status := r.getStatus(); status == queue.StatusClose || status == queue.StatusFail {
+		return queue.ErrQueueClosed
 	}
 
 	if atomic.LoadUint32(&r.lock) == 1 {
@@ -49,8 +49,8 @@ func (r *Restorer) Restore() error {
 		ver Version
 	)
 	for {
-		if r.getStatus() == blqueue.StatusClose {
-			return blqueue.ErrQueueClosed
+		if r.getStatus() == queue.StatusClose {
+			return queue.ErrQueueClosed
 		}
 
 		// Check reader for new encoded items.
@@ -78,8 +78,8 @@ func (r *Restorer) Restore() error {
 		}
 		// Spin until destination queue rate is too big.
 		for r.config.Queue.Rate() > r.config.AllowRate {
-			if r.getStatus() == blqueue.StatusClose {
-				return blqueue.ErrQueueClosed
+			if r.getStatus() == queue.StatusClose {
+				return queue.ErrQueueClosed
 			}
 			time.Sleep(r.config.PostponeInterval)
 		}
@@ -106,13 +106,13 @@ func (r *Restorer) CloseWithTimeout(timeout time.Duration) error {
 			return ErrTimeout
 		}
 	}
-	r.setStatus(blqueue.StatusClose)
+	r.setStatus(queue.StatusClose)
 	return nil
 }
 
 // ForceClose immediately stops the queue.
 func (r *Restorer) ForceClose() error {
-	r.setStatus(blqueue.StatusClose)
+	r.setStatus(queue.StatusClose)
 	return nil
 }
 
@@ -122,23 +122,23 @@ func (r *Restorer) init() {
 
 	// Check mandatory params.
 	if len(c.Key) == 0 {
-		r.Err = blqueue.ErrNoKey
-		r.setStatus(blqueue.StatusFail)
+		r.Err = queue.ErrNoKey
+		r.setStatus(queue.StatusFail)
 		return
 	}
 	if c.Decoder == nil {
 		r.Err = ErrNoDecoder
-		r.setStatus(blqueue.StatusFail)
+		r.setStatus(queue.StatusFail)
 		return
 	}
 	if c.Reader == nil {
 		r.Err = ErrNoReader
-		r.setStatus(blqueue.StatusFail)
+		r.setStatus(queue.StatusFail)
 		return
 	}
 	if c.Queue == nil {
 		r.Err = ErrNoQueue
-		r.setStatus(blqueue.StatusFail)
+		r.setStatus(queue.StatusFail)
 		return
 	}
 
@@ -158,7 +158,7 @@ func (r *Restorer) init() {
 	}
 
 	// Restorer is ready!
-	r.setStatus(blqueue.StatusActive)
+	r.setStatus(queue.StatusActive)
 
 	// Init background check ticker.
 	ticker := time.NewTicker(c.CheckInterval)
@@ -166,7 +166,7 @@ func (r *Restorer) init() {
 		for {
 			select {
 			case <-ticker.C:
-				if r.getStatus() == blqueue.StatusClose {
+				if r.getStatus() == queue.StatusClose {
 					ticker.Stop()
 					return
 				}
@@ -176,10 +176,10 @@ func (r *Restorer) init() {
 	}()
 }
 
-func (r *Restorer) setStatus(status blqueue.Status) {
+func (r *Restorer) setStatus(status queue.Status) {
 	atomic.StoreUint32((*uint32)(&r.status), uint32(status))
 }
 
-func (r *Restorer) getStatus() blqueue.Status {
-	return blqueue.Status(atomic.LoadUint32((*uint32)(&r.status)))
+func (r *Restorer) getStatus() queue.Status {
+	return queue.Status(atomic.LoadUint32((*uint32)(&r.status)))
 }
