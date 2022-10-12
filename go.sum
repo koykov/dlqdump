@@ -9,5 +9,5 @@ github.com/koykov/fastconv v0.0.0-20211028200057-f6897ace3bc2 h1:jIlvXIudUQ6ER2y
 github.com/koykov/fastconv v0.0.0-20211028200057-f6897ace3bc2/go.mod h1:JXdtdh0aCcSmxLsVUoYP61lmxpL6dWOXEKxCIR+MlGg=
 github.com/koykov/policy v0.0.0-20211205213434-fe65faba0cab h1:YBfqX4csQMLncAqrHFIIdnxtiyPW7OjW5KWjv5E/v84=
 github.com/koykov/policy v0.0.0-20211205213434-fe65faba0cab/go.mod h1:wHHIIRCCjvlBtX4mSGEBALSAlyrdRA02GTk/jBP+ufg=
-github.com/koykov/queue v0.0.0-20221011151618-6b79ff2295a5 h1:dQL82rIGtPotUCz190E0rlRuPK0eXVnPv/+PGafgDFo=
-github.com/koykov/queue v0.0.0-20221011151618-6b79ff2295a5/go.mod h1:LWBli+ArnYiOtPv3OV6husgjTuG7hlFXWuTmj2g9ffo=
+github.com/koykov/queue v0.0.0-20221012152931-787a61b64b94 h1:BJvVFA/gifbSfjbMz8XpAy8pmlNszfyTQgD/mEvJLuQ=
+github.com/koykov/queue v0.0.0-20221012152931-787a61b64b94/go.mod h1:LWBli+ArnYiOtPv3OV6husgjTuG7hlFXWuTmj2g9ffo=

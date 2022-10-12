@@ -21,8 +21,8 @@ func (q *Queue) flush(reason flushReason) error {
 // Lock-free version of flush method.
 func (q *Queue) flushLF(reason flushReason) (err error) {
 	if l := q.config.Logger; l != nil {
-		msg := "queue #%s flush by reason '%s'"
-		l.Printf(msg, q.config.Key, reason)
+		msg := "flush by reason '%s'"
+		l.Printf(msg, reason)
 	}
 
 	size := q.config.Writer.Size()
@@ -32,7 +32,7 @@ func (q *Queue) flushLF(reason flushReason) (err error) {
 		}
 	}
 
-	q.config.MetricsWriter.Flush(q.config.Key, reason.String(), int(size))
+	q.config.MetricsWriter.Flush(reason.String(), int(size))
 
 	return
 }

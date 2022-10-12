@@ -12,7 +12,6 @@ func TestWriter(t *testing.T) {
 	t.Run("force", func(t *testing.T) {
 		q, err := dlqdump.NewQueue(&dlqdump.Config{
 			Version:  dlqdump.NewVersion(1, 0, 0, 0),
-			Key:      "stage0",
 			Capacity: dlqdump.Byte * 512,
 			Encoder:  encoder.Basic{},
 			Writer: &Writer{
@@ -36,7 +35,6 @@ func TestWriter(t *testing.T) {
 	t.Run("size", func(t *testing.T) {
 		q, err := dlqdump.NewQueue(&dlqdump.Config{
 			Version:  dlqdump.NewVersion(1, 0, 0, 0),
-			Key:      "stage0",
 			Capacity: dlqdump.Byte * 32,
 			Encoder:  encoder.Basic{},
 			Writer: &Writer{
@@ -59,7 +57,6 @@ func TestWriter(t *testing.T) {
 	t.Run("timer", func(t *testing.T) {
 		q, err := dlqdump.NewQueue(&dlqdump.Config{
 			Version:       dlqdump.NewVersion(1, 0, 0, 0),
-			Key:           "stage0",
 			Capacity:      dlqdump.Byte * 512,
 			FlushInterval: time.Millisecond * 10,
 			Encoder:       encoder.Basic{},

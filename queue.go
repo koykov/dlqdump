@@ -65,10 +65,10 @@ func (q *Queue) Enqueue(x interface{}) (err error) {
 
 	// Forward encoded item to writer.
 	if _, err = q.c().Writer.Write(q.c().Version, q.buf); err != nil {
-		q.m().Fail(q.c().Key, "write fail")
+		q.m().Fail("write fail")
 		return
 	}
-	q.m().Dump(q.c().Key, len(q.buf))
+	q.m().Dump(len(q.buf))
 
 	q.buf = q.buf[:0]
 
@@ -107,8 +107,8 @@ func (q *Queue) Close() error {
 	}
 
 	if l := q.l(); l != nil {
-		msg := "queue #%s caught close signal"
-		l.Printf(msg, q.c().Key)
+		msg := "caught close signal"
+		l.Printf(msg)
 	}
 
 	q.mux.Lock()
@@ -122,11 +122,6 @@ func (q *Queue) init() {
 	c := q.c()
 
 	// Check mandatory params.
-	if len(c.Key) == 0 {
-		q.Err = queue.ErrNoKey
-		q.setStatus(queue.StatusFail)
-		return
-	}
 	if c.Capacity == 0 {
 		q.Err = queue.ErrNoSize
 		q.setStatus(queue.StatusFail)

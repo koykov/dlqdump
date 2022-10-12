@@ -62,18 +62,18 @@ func (r *Restorer) Restore() error {
 			break
 		}
 		if err != nil {
-			r.config.MetricsWriter.Fail(r.config.Key, "read error")
+			r.config.MetricsWriter.Fail("read error")
 			continue
 		}
 		if ver != r.config.Version {
-			r.config.MetricsWriter.Fail(r.config.Key, "version mismatch")
+			r.config.MetricsWriter.Fail("version mismatch")
 			continue
 		}
 
 		// Decode item.
 		var x interface{}
 		if x, err = r.config.Decoder.Decode(r.buf); err != nil {
-			r.config.MetricsWriter.Fail(r.config.Key, "decode error")
+			r.config.MetricsWriter.Fail("decode error")
 			continue
 		}
 		// Spin until destination queue rate is too big.
@@ -85,10 +85,10 @@ func (r *Restorer) Restore() error {
 		}
 		// Put item to the destination queue.
 		if err = r.config.Queue.Enqueue(x); err != nil {
-			r.config.MetricsWriter.Fail(r.config.Key, "enqueue fail")
+			r.config.MetricsWriter.Fail("enqueue fail")
 			continue
 		}
-		r.config.MetricsWriter.Restore(r.config.Key, len(r.buf))
+		r.config.MetricsWriter.Restore(len(r.buf))
 	}
 	return nil
 }
@@ -121,11 +121,6 @@ func (r *Restorer) init() {
 	c := r.config
 
 	// Check mandatory params.
-	if len(c.Key) == 0 {
-		r.Err = queue.ErrNoKey
-		r.setStatus(queue.StatusFail)
-		return
-	}
 	if c.Decoder == nil {
 		r.Err = ErrNoDecoder
 		r.setStatus(queue.StatusFail)

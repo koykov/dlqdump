@@ -11,7 +11,6 @@ import (
 func TestReader(t *testing.T) {
 	conf := dlqdump.Config{
 		Version:       dlqdump.ParseVersion("1.0"),
-		Key:           "example",
 		CheckInterval: time.Hour, // will never happen during testing
 		Reader: &Reader{
 			MatchMask: "testdata/*.bin",

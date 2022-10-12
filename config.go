@@ -21,9 +21,6 @@ type Config struct {
 	*/
 	// Write version. Must be changed at any change of Encoder param.
 	Version Version
-	// Unique queue key. Indicates queue in logs and metrics.
-	// Mandatory param.
-	Key string
 	// Metrics writer handler.
 	MetricsWriter MetricsWriter
 	// Logger handler.
