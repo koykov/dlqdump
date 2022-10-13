@@ -13,7 +13,7 @@ func TestWriter(t *testing.T) {
 		q, err := dlqdump.NewQueue(&dlqdump.Config{
 			Version:  dlqdump.NewVersion(1, 0, 0, 0),
 			Capacity: dlqdump.Byte * 512,
-			Encoder:  encoder.Basic{},
+			Encoder:  encoder.Builtin{},
 			Writer: &Writer{
 				Directory: "testdata",
 				FileMask:  "force--%Y-%m-%d--%H-%M-%S--%N.bin",
@@ -36,7 +36,7 @@ func TestWriter(t *testing.T) {
 		q, err := dlqdump.NewQueue(&dlqdump.Config{
 			Version:  dlqdump.NewVersion(1, 0, 0, 0),
 			Capacity: dlqdump.Byte * 32,
-			Encoder:  encoder.Basic{},
+			Encoder:  encoder.Builtin{},
 			Writer: &Writer{
 				Directory: "testdata",
 				FileMask:  "size--%Y-%m-%d--%H-%M-%S--%N.bin",
@@ -59,7 +59,7 @@ func TestWriter(t *testing.T) {
 			Version:       dlqdump.NewVersion(1, 0, 0, 0),
 			Capacity:      dlqdump.Byte * 512,
 			FlushInterval: time.Millisecond * 10,
-			Encoder:       encoder.Basic{},
+			Encoder:       encoder.Builtin{},
 			Writer: &Writer{
 				Directory: "testdata",
 				FileMask:  "timer--%Y-%m-%d--%H-%M-%S--%N.bin",
