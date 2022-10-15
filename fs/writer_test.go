@@ -8,12 +8,28 @@ import (
 	"github.com/koykov/dlqdump/encoder"
 )
 
+type testEncoder struct {
+	encoder.Builtin
+	encoder.Marshaller
+}
+
+func (e testEncoder) Encode(dst []byte, x interface{}) ([]byte, error) {
+	var err error
+	if dst, err = e.Builtin.Encode(dst, x); err == nil {
+		return dst, nil
+	}
+	if dst, err = e.Marshaller.Encode(dst, x); err == nil {
+		return dst, nil
+	}
+	return dst, encoder.ErrIncompatibleEncoder
+}
+
 func TestWriter(t *testing.T) {
 	t.Run("force", func(t *testing.T) {
 		q, err := dlqdump.NewQueue(&dlqdump.Config{
 			Version:  dlqdump.NewVersion(1, 0, 0, 0),
 			Capacity: dlqdump.Byte * 512,
-			Encoder:  encoder.Builtin{},
+			Encoder:  testEncoder{},
 			Writer: &Writer{
 				Directory: "testdata",
 				FileMask:  "force--%Y-%m-%d--%H-%M-%S--%N.bin",
@@ -36,7 +52,7 @@ func TestWriter(t *testing.T) {
 		q, err := dlqdump.NewQueue(&dlqdump.Config{
 			Version:  dlqdump.NewVersion(1, 0, 0, 0),
 			Capacity: dlqdump.Byte * 32,
-			Encoder:  encoder.Builtin{},
+			Encoder:  testEncoder{},
 			Writer: &Writer{
 				Directory: "testdata",
 				FileMask:  "size--%Y-%m-%d--%H-%M-%S--%N.bin",
@@ -59,7 +75,7 @@ func TestWriter(t *testing.T) {
 			Version:       dlqdump.NewVersion(1, 0, 0, 0),
 			Capacity:      dlqdump.Byte * 512,
 			FlushInterval: time.Millisecond * 10,
-			Encoder:       encoder.Builtin{},
+			Encoder:       testEncoder{},
 			Writer: &Writer{
 				Directory: "testdata",
 				FileMask:  "timer--%Y-%m-%d--%H-%M-%S--%N.bin",

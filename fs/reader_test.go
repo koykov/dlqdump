@@ -10,7 +10,7 @@ import (
 
 func TestReader(t *testing.T) {
 	conf := dlqdump.Config{
-		Version:       dlqdump.ParseVersion("1.0"),
+		Version:       dlqdump.NewVersion(1, 0, 0, 0),
 		CheckInterval: time.Hour, // will never happen during testing
 		Reader: &Reader{
 			MatchMask: "testdata/*.bin",
