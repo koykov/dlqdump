@@ -123,7 +123,7 @@ func (q *Queue) init() {
 
 	// Check mandatory params.
 	if c.Capacity == 0 {
-		q.Err = queue.ErrNoSize
+		q.Err = queue.ErrNoCapacity
 		q.setStatus(queue.StatusFail)
 		return
 	}
