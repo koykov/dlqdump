@@ -32,13 +32,14 @@ type Config struct {
 	*/
 	// Max queue capacity in bytes.
 	// When dumped data will reach size, queue will flush the data.
+	// Mandatory param.
 	Capacity MemorySize
 	// Wait duration until flush the data.
 	// After first incoming item will start the timer to flush the data when timer reach.
 	// If this param omit defaultFlushInterval (30 seconds) will use by default.
 	FlushInterval time.Duration
 	// Encoder helper to convert item to bytes.
-	// Will use universal encoder if omitted.
+	// Mandatory param.
 	Encoder Encoder
 	// Writer helper to dump data to various destinations.
 	// Mandatory param.
