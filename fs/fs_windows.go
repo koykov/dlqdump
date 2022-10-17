@@ -1,6 +1,6 @@
-package fs
-
 // Windows file system functions.
+
+package fs
 
 import "os"
 
