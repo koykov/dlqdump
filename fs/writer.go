@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	defaultFileMask = "%Y-%m-%d--%H-%M-%S--%i.bin"
-	flushChunkSize  = 16
+	defaultFileMask  = "%Y-%m-%d--%H-%M-%S--%i.bin"
+	defaultBlockSIze = 4096
 )
 
 // Writer is file system implementation of dlqdump.Writer interface.
@@ -35,6 +35,7 @@ type Writer struct {
 	dir  string
 	mask string
 	sz   uint64
+	bsz  int64
 
 	mux sync.Mutex
 	f   *os.File
@@ -125,6 +126,9 @@ func (d *Writer) init() {
 		d.err = ErrDirNoWR
 		return
 	}
+	if d.bsz = blockSizeOf(d.Directory); d.bsz == 0 {
+		d.bsz = defaultBlockSIze
+	}
 	if len(d.FileMask) == 0 {
 		d.FileMask = defaultFileMask
 	}
@@ -158,11 +162,11 @@ func (d *Writer) flushBuf() (err error) {
 	}
 
 	p := d.buf[lo:hi]
-	for len(p) >= flushChunkSize {
-		if _, err = d.f.Write(p[:flushChunkSize]); err != nil {
+	for len(p) >= int(d.bsz) {
+		if _, err = d.f.Write(p[:d.bsz]); err != nil {
 			return
 		}
-		p = p[flushChunkSize:]
+		p = p[d.bsz:]
 	}
 	if len(p) > 0 {
 		if _, err = d.f.Write(p); err != nil {
