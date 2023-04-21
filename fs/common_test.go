@@ -24,7 +24,7 @@ type testq struct {
 	c int
 }
 
-func (q *testq) Enqueue(x interface{}) error {
+func (q *testq) Enqueue(x any) error {
 	raw, ok := x.([]byte)
 	if !ok {
 		return errors.New("type mismatch")
@@ -59,13 +59,13 @@ func (q *testq) Enqueue(x interface{}) error {
 	q.c++
 	return nil
 }
-func (q testq) Size() int     { return 0 }
-func (q testq) Capacity() int { return 0 }
-func (q testq) Rate() float32 { return 0 }
-func (q testq) Close() error  { return nil }
-func (q *testq) reset()       { q.t, q.c = nil, 0 }
+func (q *testq) Size() int     { return 0 }
+func (q *testq) Capacity() int { return 0 }
+func (q *testq) Rate() float32 { return 0 }
+func (q *testq) Close() error  { return nil }
+func (q *testq) reset()        { q.t, q.c = nil, 0 }
 
-var testVars []interface{}
+var testVars []any
 
 func init() {
 	p := []byte("asdfgh456")
@@ -73,7 +73,7 @@ func init() {
 	var buf bytes.Buffer
 	buf.WriteString("qweasdzxc2468")
 	m := m8r{payload: []byte("ertfghvbn123")}
-	testVars = []interface{}{
+	testVars = []any{
 		[]byte("foobar123"),
 		&p,
 		"zxcvbn051",

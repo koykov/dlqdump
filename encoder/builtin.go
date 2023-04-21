@@ -16,7 +16,7 @@ type byter interface {
 // * Stringer
 type Builtin struct{}
 
-func (e Builtin) Encode(dst []byte, x interface{}) ([]byte, error) {
+func (e Builtin) Encode(dst []byte, x any) ([]byte, error) {
 	var err error
 	switch x.(type) {
 	case []byte:

@@ -71,7 +71,7 @@ func (r *Restorer) Restore() error {
 		}
 
 		// Decode item.
-		var x interface{}
+		var x any
 		if x, err = r.config.Decoder.Decode(r.buf); err != nil {
 			r.config.MetricsWriter.Fail("decode error")
 			continue

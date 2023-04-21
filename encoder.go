@@ -4,5 +4,5 @@ package dlqdump
 //
 // Encode encodes x to dst. It returns dst and any error encountered.
 type Encoder interface {
-	Encode(dst []byte, x interface{}) ([]byte, error)
+	Encode(dst []byte, x any) ([]byte, error)
 }

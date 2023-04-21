@@ -12,7 +12,7 @@ type Unmarshaller struct {
 	New func() UnmarshallerInterface
 }
 
-func (d Unmarshaller) Decode(p []byte) (interface{}, error) {
+func (d Unmarshaller) Decode(p []byte) (any, error) {
 	if d.New == nil {
 		return nil, ErrNoNewFunc
 	}
