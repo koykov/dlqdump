@@ -16,7 +16,7 @@ type MarshallerToInterface interface {
 // Marshaller is an encoder that can encode objects implementing MarshallerInterface or MarshallerToInterface interface.
 type Marshaller struct{}
 
-func (e Marshaller) Encode(dst []byte, x interface{}) ([]byte, error) {
+func (e Marshaller) Encode(dst []byte, x any) ([]byte, error) {
 	if m, ok := x.(MarshallerToInterface); ok {
 		off := len(dst)
 		dst = bytealg.GrowDelta(dst, m.Size())

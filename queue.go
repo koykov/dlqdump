@@ -41,7 +41,7 @@ func NewQueue(config *Config) (*Queue, error) {
 }
 
 // Enqueue puts x to the queue.
-func (q *Queue) Enqueue(x interface{}) (err error) {
+func (q *Queue) Enqueue(x any) (err error) {
 	q.once.Do(q.init)
 	if status := q.getStatus(); status == queue.StatusClose || status == queue.StatusFail {
 		return queue.ErrQueueClosed

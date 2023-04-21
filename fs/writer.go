@@ -151,10 +151,10 @@ func (d *Writer) flushBuf() (err error) {
 			return
 		}
 		filepath := fastconv.B2S(d.buf[hi:])
-		d.fd = bytealg.CopyStr(filepath)
+		d.fd = bytealg.Copy(filepath)
 		d.buf = append(d.buf, ".tmp"...)
 		filepathTmp := fastconv.B2S(d.buf[hi:])
-		d.ft = bytealg.CopyStr(filepathTmp)
+		d.ft = bytealg.Copy(filepathTmp)
 		if d.f, err = os.Create(filepathTmp); err != nil {
 			return
 		}

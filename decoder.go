@@ -4,5 +4,5 @@ package dlqdump
 //
 // Decode decodes value from p. It returns decoded value and any error encountered.
 type Decoder interface {
-	Decode(p []byte) (interface{}, error)
+	Decode(p []byte) (any, error)
 }

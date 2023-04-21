@@ -13,7 +13,7 @@ type testEncoder struct {
 	encoder.Marshaller
 }
 
-func (e testEncoder) Encode(dst []byte, x interface{}) ([]byte, error) {
+func (e testEncoder) Encode(dst []byte, x any) ([]byte, error) {
 	var err error
 	if dst, err = e.Builtin.Encode(dst, x); err == nil {
 		return dst, nil
