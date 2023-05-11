@@ -36,5 +36,6 @@ func blockSizeOf(path string) int64 {
 	if err := syscall.Statfs(path, &stat); err != nil {
 		return 0
 	}
+	// Typecast to int64 isn't redundant: darwin architecture issue.
 	return int64(stat.Bsize)
 }
