@@ -8,5 +8,5 @@ github.com/koykov/clock v1.1.2 h1:/6s1nSM5RZXR1GbyNuCnMcxDFyeMGp+/w6zoBC1B1xo=
 github.com/koykov/clock v1.1.2/go.mod h1:WC9+dww2TMJMBG9+/0ujYPI0WQgqpLxJoOSwZ12uvK8=
 github.com/koykov/fastconv v1.0.2 h1:csOWpctD9OcpkfI07LEtqtolc4TT8Y6QG3zQvkTmhrQ=
 github.com/koykov/fastconv v1.0.2/go.mod h1:9jOx5KRGe4UKHxGiDw5Yrp/qrqn2cRwH3xvFjqqCE3c=
-github.com/koykov/queue v1.1.4 h1:jEQvKxshxq23E63989PQ4xSpVggGCeSmpfI/yR2NViA=
-github.com/koykov/queue v1.1.4/go.mod h1:Rdb8UVBsJ8Vm2YpNMc6/T3GC33tXrwth9oNvaLt5E/E=
+github.com/koykov/queue v1.1.5-0.20230529190623-219089f312dd h1:YtOM9mZar2QoEh8LS5q3pfukt16dLejH9IEacwHg0XA=
+github.com/koykov/queue v1.1.5-0.20230529190623-219089f312dd/go.mod h1:Rdb8UVBsJ8Vm2YpNMc6/T3GC33tXrwth9oNvaLt5E/E=
