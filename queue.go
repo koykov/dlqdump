@@ -50,6 +50,14 @@ func (q *Queue) Enqueue(x any) (err error) {
 	q.mux.Lock()
 	defer q.mux.Unlock()
 
+	// Check job incoming and extract payload.
+	switch x.(type) {
+	case queue.Job:
+		x = x.(queue.Job).Payload
+	case *queue.Job:
+		x = x.(*queue.Job).Payload
+	}
+
 	// Encode item to bytes.
 	q.buf, err = q.c().Encoder.Encode(q.buf[:0], x)
 	if err != nil {
