@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/koykov/bytealg"
+	"github.com/koykov/byteconv"
 	"github.com/koykov/clock"
 	"github.com/koykov/dlqdump"
-	"github.com/koykov/fastconv"
 )
 
 const (
@@ -150,10 +150,10 @@ func (d *Writer) flushBuf() (err error) {
 		if d.buf, err = clock.AppendFormat(d.buf, d.mask, time.Now()); err != nil {
 			return
 		}
-		filepath := fastconv.B2S(d.buf[hi:])
+		filepath := byteconv.B2S(d.buf[hi:])
 		d.fd = bytealg.Copy(filepath)
 		d.buf = append(d.buf, ".tmp"...)
-		filepathTmp := fastconv.B2S(d.buf[hi:])
+		filepathTmp := byteconv.B2S(d.buf[hi:])
 		d.ft = bytealg.Copy(filepathTmp)
 		if d.f, err = os.Create(filepathTmp); err != nil {
 			return
