@@ -4,10 +4,14 @@ go 1.18
 
 require (
 	github.com/koykov/bitset v1.0.0
-	github.com/koykov/bytealg v1.0.2
-	github.com/koykov/clock v1.1.2
+	github.com/koykov/bytealg v1.0.4
+	github.com/koykov/clock v1.1.3
 	github.com/koykov/fastconv v1.0.2
-	github.com/koykov/queue v1.1.5-0.20230529190623-219089f312dd
+	github.com/koykov/queue v1.1.6-0.20231230211117-2c7d81199abb
 )
 
-require github.com/koykov/byteseq v0.0.0-20230330194259-68973f3b765a // indirect
+require (
+	github.com/koykov/byteconv v1.0.0 // indirect
+	github.com/koykov/byteseq v1.0.1 // indirect
+	github.com/koykov/entry v1.0.2 // indirect
+)
