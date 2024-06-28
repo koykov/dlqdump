@@ -134,11 +134,12 @@
 методов см. в исходном коде интерфейса, он достаточно простой.
 
 На данный момент написаны две реализации этого интерфейса:
-[`LogMetrics`](https://github.com/koykov/metrics_writers/blob/master/dlqdump/log.go) и
-[`PrometheusMetrics`](https://github.com/koykov/metrics_writers/blob/master/dlqdump/prometheus.go). Первый бесмысленно
-использовать в продакшн условиях и он создавался для упрощения отладки при разработке. А вот Prometheus версия полностью
-рабочая и протестированная. Аналогичным образом, можно написать реализацию `MetricsWriter`-а для иной TSDB, которую вы
-используете.
+* [`log.MetricsWriter`](https://github.com/koykov/dlqdump/blob/master/metrics/log/log.go)
+* [`prometheus.MetricsWriter`](https://github.com/koykov/dlqdump/blob/master/metrics/prometheus/prometheus.go)
+
+Первый бесмысленно использовать в продакшн условиях и он создавался для упрощения отладки при разработке. А вот Prometheus
+версия полностью рабочая и протестированная. Аналогичным образом, можно написать реализацию `MetricsWriter`-а для иной TSDB,
+которую вы используете.
 
 ## Логирование
 
