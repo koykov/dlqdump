@@ -48,13 +48,13 @@
 ### Сериализация
 
 `Queue` имеет два уровня абстракции. Первый задаётся параметром `Encoder`. Это специальный компонент, который должен
-реализовывать интерфейс [`Encoder`](https://github.com/koykov/dlqdump/blob/master/encoder.go). Этот компонент принимает
+реализовывать интерфейс [`Encoder`](encoder.go). Этот компонент принимает
 произвольный элеменент и пробует его сериализовать в буфер `dst`. Сериализованные данные будут далее перенаправлены в
 хранилище.
 
 `dlqdump` из коробки содержит несколько енкодеров:
-[builtin](https://github.com/koykov/dlqdump/blob/master/encoder/builtin.go) и
-[marshaller](https://github.com/koykov/dlqdump/blob/master/encoder/marshaller.go).
+[builtin](encoder/builtin.go) и
+[marshaller](encoder/marshaller.go).
 Первый позволяет сериализовать примитивные строковые типы данных, а также объекты реализующие `Byter` и `Stringer`
 интерфейсы.
 Второй интереснее, с его помощью можно сериализовать сложные структуры, например
@@ -63,9 +63,9 @@
 ### Запись дампов
 
 Это второй слой абстракции. Он задаётся параметром `Writer` и должен реализовывать интерфейс
-[`Writer`](https://github.com/koykov/dlqdump/blob/master/writer.go). Этот объект, согласно своей внутренней логике,
+[`Writer`](writer.go). Этот объект, согласно своей внутренней логике,
 использует переданные очередью версию и сериализованные `Encoder`-ом данные для создания дампов. Например, `dlqdump` из
-коробки содержит реализацию `Writer`-а, которая [пишет данные на диск](https://github.com/koykov/dlqdump/tree/master/fs).
+коробки содержит реализацию `Writer`-а, которая [пишет данные на диск](fs).
 Но вы можете написать любую удобную вам реализацию, например для записи в Google Cloud или куда-то ещё.
 
 ## Восстановление
@@ -105,10 +105,10 @@
 `Restorer` подобно `Queue` имеет два слоя абстракции, но с обратным смыслом.
 
 Первый задаётся параметром `Reader`, который должен реализовывать интерфейс
-[`Reader`](https://github.com/koykov/dlqdump/blob/master/reader.go). В общем виде, этот компонент должен читать из дампа
+[`Reader`](reader.go). В общем виде, этот компонент должен читать из дампа
 сериализованные данные и версию до тех пор, пока не вернёт `EOF` ошибку.
 `dlqdump` из коробки содержит реализацию `Reader`-а, которая
-[читает дампы с диска](https://github.com/koykov/dlqdump/tree/master/fs).
+[читает дампы с диска](fs).
 Вы вольны написать свою реализацию чтения дампов из нужного источника.
 
 После успешного чтения происходит проверка версий.
@@ -116,12 +116,12 @@
 ### Десериализация
 
 Полученные из `Reader`-а сериализованные данные будут переданы в параметр `Decoder`. Это специальный компонент,
-реализующий интерфейс [`Decoder`](https://github.com/koykov/dlqdump/blob/master/decoder.go). Он или сможет
+реализующий интерфейс [`Decoder`](decoder.go). Он или сможет
 десериализовать исходный элемент или сообщит о невозможности сделать это. Этот компонент является вторым слоем
 абстракции.
 `dlqdump` из коробки имеет два декодера:
-[fallthrough](https://github.com/koykov/dlqdump/blob/master/decoder/fallthrough.go) и
-[unmarshaller](https://github.com/koykov/dlqdump/blob/master/decoder/unmarshaller.go). Первый был разработан для нужд
+[fallthrough](decoder/fallthrough.go) и
+[unmarshaller](decoder/unmarshaller.go). Первый был разработан для нужд
 тестирования и не имеет смысла в продакшн условиях. А второй обратен енкодеру `marshaller` и способен десериализовать
 сложные объекты вроде `protobuf`.
 
@@ -134,8 +134,8 @@
 методов см. в исходном коде интерфейса, он достаточно простой.
 
 На данный момент написаны две реализации этого интерфейса:
-* [`log.MetricsWriter`](https://github.com/koykov/dlqdump/blob/master/metrics/log/log.go)
-* [`prometheus.MetricsWriter`](https://github.com/koykov/dlqdump/blob/master/metrics/prometheus/prometheus.go)
+* [`log.MetricsWriter`](metrics/log/writer.go)
+* [`prometheus.MetricsWriter`](metrics/prometheus/writer.go)
 
 Первый бесмысленно использовать в продакшн условиях и он создавался для упрощения отладки при разработке. А вот Prometheus
 версия полностью рабочая и протестированная. Аналогичным образом, можно написать реализацию `MetricsWriter`-а для иной TSDB,
