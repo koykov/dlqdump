@@ -7,7 +7,7 @@ require (
 	github.com/koykov/bytealg v1.0.4
 	github.com/koykov/byteconv v1.0.0
 	github.com/koykov/clock v1.1.3
-	github.com/koykov/queue v1.1.6-0.20231230211117-2c7d81199abb
+	github.com/koykov/queue v1.1.6
 )
 
 require (
