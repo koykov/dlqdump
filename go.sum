@@ -10,5 +10,5 @@ github.com/koykov/clock v1.1.3 h1:EN7Q3235Wmu0QL2hWYXg5lSJQx0DtENhv6OFgOcGFgA=
 github.com/koykov/clock v1.1.3/go.mod h1:zvFQ390xWoxWl/d0pk3G2NpHdVgbwNqqdDAMS2Vrv4s=
 github.com/koykov/entry v1.0.2 h1:6mZJUt4POGQHRPJ9Iw4GyIZJi9wj2lews3yRRNHfTY4=
 github.com/koykov/entry v1.0.2/go.mod h1:WmCy/YM0sPb4ETL9wYY0OJwO89KJ7qeQPGOwLUG4rZU=
-github.com/koykov/queue v1.1.6-0.20231230211117-2c7d81199abb h1:uleKk4KaHFAuF38RME73V+zIWUCuUN035qB45Bqxxqg=
-github.com/koykov/queue v1.1.6-0.20231230211117-2c7d81199abb/go.mod h1:Rdb8UVBsJ8Vm2YpNMc6/T3GC33tXrwth9oNvaLt5E/E=
+github.com/koykov/queue v1.1.6 h1:k8/DzNLmdGfJ5Tv0K4I8APayoPKGx/Vr3eP8t7iB2kA=
+github.com/koykov/queue v1.1.6/go.mod h1:Rdb8UVBsJ8Vm2YpNMc6/T3GC33tXrwth9oNvaLt5E/E=
