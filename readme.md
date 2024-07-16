@@ -49,3 +49,12 @@ Serialized data will send to the storage afterward.
 [marshaller](encoder/marshaller.go).
 The first may serialize string/bytes data or types implements `Byter` and `Stringer` interfaces.
 The second may serialize [protobuf](https://en.wikipedia.org/wiki/Protocol_Buffers) objects.
+
+### Dump writing
+
+The second abstraction layer. There is a param `Writer` that must implement [`Writer`](writer.go) interface. This object,
+using version and serialized data, writes a dump. `dlqdump` has builtin `Writer` implementation to 
+[write dumps to the disk](fs).
+
+You may write your own implementation to write dumps to the cloud, etc...
+
