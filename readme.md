@@ -122,3 +122,8 @@ There is two implementations of that interface:
 
 Log writer is useless for production. Prometheus implementation is fully tested and may be used in production.
 
+## Logging
+
+`Restorer` can log own internal processes using `Logger` param (must implement
+[`Logger`](https://github.com/koykov/queue/blob/master/logger.go) interface).
+
