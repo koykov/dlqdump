@@ -111,3 +111,14 @@ Serialized data taken from `Reader` will send to `Decoder` afterward - special p
 
 After success deserialization the item will send to the target queue.
 
+## Metrics
+
+Similar to [`queue`](https://github.com/koykov/queue) `dlqdump` has param `MetricsWriter` that must implement
+[`MetricsWriter`](https://github.com/koykov/dlqdump/blob/master/metrics.go#L4) interface.
+
+There is two implementations of that interface:
+* [`log.MetricsWriter`](metrics/log/writer.go)
+* [`prometheus.MetricsWriter`](metrics/prometheus/writer.go)
+
+Log writer is useless for production. Prometheus implementation is fully tested and may be used in production.
+
