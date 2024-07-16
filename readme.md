@@ -89,3 +89,14 @@ The target queue set up using param `Queue` and must implement [queue interface]
 * `AllowRate` - the maximum rate (items/capacity) of target queue that allows to send items to it. Required to avoid
 overflowing of target queue by `Restorer`
 
+### Dump reading
+
+`Restorer` similar to `Queue` has two abstraction layers, but in reverse meaning.
+
+The first layer represents by param `Reader` that must implement [`Reader`](reader.go) interface. This object must read
+from the dump version and serialized data till EOF error caught.
+
+`dlqdump` has builtin implementation that [reads dump from the disk](fs). As usual, you may write your own implementation
+for required storage.
+
+
