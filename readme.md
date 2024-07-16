@@ -133,3 +133,8 @@ Log writer is useless for production. Prometheus implementation is fully tested 
 purposes.
 
 Testing scenario of `dlqdump` https://github.com/koykov/demo/blob/master/queue/request/demo100k_dump.http
+
+## References
+
+* https://en.wikipedia.org/wiki/Dead_letter_queue
+* https://cloud.yandex.com/en/docs/message-queue/concepts/dlq
