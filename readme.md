@@ -58,7 +58,7 @@ using version and serialized data, writes a dump. `dlqdump` has builtin `Writer`
 
 You may write your own implementation to write dumps to the cloud, etc...
 
-### Restoring
+## Restoring
 
 Dump writing isn't the full issues. Data from dumps should be used (restored and processed again). `dlqdump` contains
 `Restorer` component, that are opposite to `Queue`.
@@ -80,4 +80,12 @@ The base param is `Version`. Work similar to queue config. If version in config 
 be removed.
 
 The target queue set up using param `Queue` and must implement [queue interface](https://github.com/koykov/queue/blob/master/interface.go#L4).
+
+### Restoring settings
+
+`Restorer` has three params:
+* `CheckInterval` - the interval between checks of dumps in storage
+* `PostponeInterval` - how long restoring must be postponed if target's queue rate overflows `AllowRate`
+* `AllowRate` - the maximum rate (items/capacity) of target queue that allows to send items to it. Required to avoid
+overflowing of target queue by `Restorer`
 
