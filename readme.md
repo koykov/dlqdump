@@ -58,3 +58,26 @@ using version and serialized data, writes a dump. `dlqdump` has builtin `Writer`
 
 You may write your own implementation to write dumps to the cloud, etc...
 
+### Restoring
+
+Dump writing isn't the full issues. Data from dumps should be used (restored and processed again). `dlqdump` contains
+`Restorer` component, that are opposite to `Queue`.
+
+The main idea: the source queue leaks and using DLQ sends the items to dumping queue. The queue flushed the data to
+storage and then `Restorer` checks its periodically and tries to send items back to target queue (the origin queue in
+most usable case, but you may specify any other queue).
+As result, the loop is formed:
+* queue leaks the items
+* DLQ writes a dump
+* Restorer reads the items from dump
+* Restorer send restored items back to the queue
+
+The storage uses as big buffer in that case, but not in RAM.
+
+`Restorer` uses the same config struct, but ignores specific for queue params (queue similarly ignores `Restorer` params).
+
+The base param is `Version`. Work similar to queue config. If version in config and dump will different, then dump will
+be removed.
+
+The target queue set up using param `Queue` and must implement [queue interface](https://github.com/koykov/queue/blob/master/interface.go#L4).
+
