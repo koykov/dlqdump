@@ -127,3 +127,9 @@ Log writer is useless for production. Prometheus implementation is fully tested 
 `Restorer` can log own internal processes using `Logger` param (must implement
 [`Logger`](https://github.com/koykov/queue/blob/master/logger.go) interface).
 
+## Demo stage
+
+`dlqdump` uses the same [demo stage](https://github.com/koykov/demo/tree/master/queue) for debugging and testing
+purposes.
+
+Testing scenario of `dlqdump` https://github.com/koykov/demo/blob/master/queue/request/demo100k_dump.http
