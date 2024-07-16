@@ -99,4 +99,15 @@ from the dump version and serialized data till EOF error caught.
 `dlqdump` has builtin implementation that [reads dump from the disk](fs). As usual, you may write your own implementation
 for required storage.
 
+### Deserialization
+
+Serialized data taken from `Reader` will send to `Decoder` afterward - special param that must implement
+[`Decoder`](decoder.go) interface. This object will deserialize the data or report about error occurs.
+
+`dlqdump` has two builtin decoders:
+[fallthrough](decoder/fallthrough.go) и
+[unmarshaller](decoder/unmarshaller.go). The first one uses only for testing purposes. The second is opposite to
+`marshaller` encoder and may deserialize objects like protobuf.
+
+After success deserialization the item will send to the target queue.
 
