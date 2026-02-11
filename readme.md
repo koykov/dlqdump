@@ -117,10 +117,10 @@ Similar to [`queue`](https://github.com/koykov/queue) `dlqdump` has param `Metri
 [`MetricsWriter`](https://github.com/koykov/dlqdump/blob/master/metrics.go#L4) interface.
 
 There is two implementations of that interface:
-* [`log.MetricsWriter`](metrics/log/writer.go)
-* [`prometheus.MetricsWriter`](metrics/prometheus/writer.go)
+* [`prometheus.Writer`](metrics/prometheus/writer.go)
+* [`victoria.Writer`](metrics/victoria/writer.go)
 
-Log writer is useless for production. Prometheus implementation is fully tested and may be used in production.
+Feel free to implement your own implementation for TSDB you use.
 
 ## Logging
 
