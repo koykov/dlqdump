@@ -6,8 +6,15 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-// MetricsWriter is a Prometheus implementation of dlqdump.MetricsWriter.
-type MetricsWriter struct {
+type Writer interface {
+	Dump(size int)
+	Flush(reason string, size int)
+	Restore(size int)
+	Fail(reason string)
+}
+
+// writer is a Prometheus implementation of dlqdump.MetricsWriter.
+type writer struct {
 	name string
 	prec time.Duration
 }
@@ -15,8 +22,6 @@ type MetricsWriter struct {
 var (
 	promSizeIncome, promSizeOutcome, promBytesIncome, promBytesOutcome, promBytesFlush,
 	promFail *prometheus.CounterVec
-
-	_ = NewPrometheusMetrics
 )
 
 func init() {
@@ -49,35 +54,44 @@ func init() {
 	prometheus.MustRegister(promSizeIncome, promSizeOutcome, promBytesIncome, promBytesOutcome, promBytesFlush, promFail)
 }
 
-func NewPrometheusMetrics(name string) *MetricsWriter {
-	return NewPrometheusMetricsWP(name, time.Nanosecond)
+// NewPrometheusMetrics makes new instance of metrics writer.
+// Deprecated: use NewWriter instead.
+func NewPrometheusMetrics(name string) Writer {
+	return NewWriter(name)
 }
 
-func NewPrometheusMetricsWP(name string, precision time.Duration) *MetricsWriter {
-	if precision == 0 {
-		precision = time.Nanosecond
-	}
-	m := &MetricsWriter{
-		name: name,
-		prec: precision,
-	}
-	return m
+// NewPrometheusMetricsWP makes new instance of metrics writer with given precision.
+// Deprecated: use NewWriter instead.
+func NewPrometheusMetricsWP(name string, precision time.Duration) Writer {
+	return NewWriter(name, WithPrecision(precision))
 }
 
-func (w MetricsWriter) Dump(size int) {
+// NewWriter makes new instance of metrics writer.
+func NewWriter(name string, options ...Option) Writer {
+	mw := &writer{name: name}
+	for _, fn := range options {
+		fn(mw)
+	}
+	if mw.prec == 0 {
+		mw.prec = time.Nanosecond
+	}
+	return mw
+}
+
+func (w *writer) Dump(size int) {
 	promBytesIncome.WithLabelValues(w.name).Add(float64(size))
 	promSizeIncome.WithLabelValues(w.name).Inc()
 }
 
-func (w MetricsWriter) Flush(reason string, size int) {
+func (w *writer) Flush(reason string, size int) {
 	promBytesFlush.WithLabelValues(w.name, reason).Add(float64(size))
 }
 
-func (w MetricsWriter) Restore(size int) {
+func (w *writer) Restore(size int) {
 	promBytesOutcome.WithLabelValues(w.name).Add(float64(size))
 	promSizeOutcome.WithLabelValues(w.name).Inc()
 }
 
-func (w MetricsWriter) Fail(reason string) {
+func (w *writer) Fail(reason string) {
 	promFail.WithLabelValues(w.name, reason).Inc()
 }
