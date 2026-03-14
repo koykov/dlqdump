@@ -15,7 +15,7 @@ import (
 
 const (
 	defaultFileMask  = "%Y-%m-%d--%H-%M-%S--%i.bin"
-	defaultBlockSIze = 4096
+	defaultBlockSize = 4096
 )
 
 // Writer is file system implementation of dlqdump.Writer interface.
@@ -127,7 +127,7 @@ func (d *Writer) init() {
 		return
 	}
 	if d.bsz = blockSizeOf(d.Directory); d.bsz == 0 {
-		d.bsz = defaultBlockSIze
+		d.bsz = defaultBlockSize
 	}
 	if len(d.FileMask) == 0 {
 		d.FileMask = defaultFileMask
