@@ -13,6 +13,8 @@ const (
 	defaultAllowRate = .95
 	// Default delay if restore allow rate limit exceeds.
 	defaultCheckInterval = time.Second
+	// Default time limit to wait for an in-flight restore to stop.
+	defaultCloseTimeout = time.Second * 30
 )
 
 type Config struct {
@@ -58,6 +60,9 @@ type Config struct {
 	// Queue rate that allows restore.
 	// If this param omit defaultAllowRate (95%) will use by default.
 	AllowRate float32
+	// Time limit to wait for active restore to stop on Close.
+	// If this param omit defaultCloseTimeout (30 seconds) will use by default.
+	CloseTimeout time.Duration
 	// Helper to achieve data from dump.
 	// Mandatory param.
 	Reader Reader
