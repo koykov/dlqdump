@@ -1,6 +1,7 @@
 package dlqdump
 
 import (
+	"context"
 	"io"
 	"sync"
 	"sync/atomic"
@@ -95,18 +96,36 @@ func (r *Restorer) Restore() error {
 
 // Close gracefully stops the restorer.
 func (r *Restorer) Close() error {
-	return r.CloseWithTimeout(time.Second * 30)
+	return r.CloseWithTimeout(r.config.CloseTimeout)
 }
 
-// CloseWithTimeout stops the queue with timeout.
+// CloseWithTimeout stops the restorer with timeout.
 func (r *Restorer) CloseWithTimeout(timeout time.Duration) error {
-	now := time.Now()
+	// Signal an in-flight Restore() to abort as soon as possible: Restore()
+	// checks the status at the top of its loop and while waiting for the
+	// destination queue rate to drop.
+	r.setStatus(queue.StatusClose)
+	deadline := time.Now().Add(timeout)
 	for atomic.LoadUint32(&r.lock) == 1 {
-		if time.Since(now) > timeout {
+		if time.Now().After(deadline) {
 			return ErrTimeout
 		}
+		time.Sleep(time.Millisecond)
 	}
+	return nil
+}
+
+// CloseWithContext stops the restorer and respects ctx cancellation while waiting
+// for an in-flight Restore() to finish.
+func (r *Restorer) CloseWithContext(ctx context.Context) error {
 	r.setStatus(queue.StatusClose)
+	for atomic.LoadUint32(&r.lock) == 1 {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(time.Millisecond):
+		}
+	}
 	return nil
 }
 
@@ -146,6 +165,9 @@ func (r *Restorer) init() {
 	}
 	if c.AllowRate == 0 {
 		c.AllowRate = defaultAllowRate
+	}
+	if c.CloseTimeout == 0 {
+		c.CloseTimeout = defaultCloseTimeout
 	}
 
 	if c.MetricsWriter == nil {
