@@ -1,5 +1,7 @@
 package dlqdump
 
+import "sync/atomic"
+
 type flushReason uint8
 
 const (
@@ -13,7 +15,8 @@ func (q *Queue) flush(reason flushReason) error {
 	q.mux.Lock()
 	defer q.mux.Unlock()
 	if reason == flushReasonForce {
-		q.timer.reset()
+		q.timer.stop()
+		atomic.StoreUint32(&q.timerOn, 0)
 	}
 	return q.flushLF(reason)
 }

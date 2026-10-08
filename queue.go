@@ -1,24 +1,21 @@
 package dlqdump
 
 import (
+	"runtime"
 	"sync"
 	"sync/atomic"
 
-	"github.com/koykov/bitset"
 	"github.com/koykov/queue"
-)
-
-const (
-	flagTimer = 0
 )
 
 // Queue represents dumping queue.
 type Queue struct {
-	bitset.Bitset
 	// Config instance.
 	config *Config
 	// Actual queue status.
 	status queue.Status
+	// Flag that the flush timer is running. Accessed atomically.
+	timerOn uint32
 
 	once sync.Once
 
@@ -27,6 +24,9 @@ type Queue struct {
 
 	mux sync.Mutex
 	buf []byte
+	// Counter of in-flight Enqueue operations. Close waits for it to drop to zero, so all items that
+	// have already started to be written are flushed before the queue returns from Close.
+	wlock int64
 
 	Err error
 }
@@ -43,6 +43,12 @@ func NewQueue(config *Config) (*Queue, error) {
 // Enqueue puts x to the queue.
 func (q *Queue) Enqueue(x any) (err error) {
 	q.once.Do(q.init)
+
+	// Register the operation before checking the status: Close waits for the counter to reach zero, so a
+	// racing Enqueue is either completed before the final flush or rejected here. This ordering prevents
+	// an item from being written after Close has already flushed the queue.
+	atomic.AddInt64(&q.wlock, 1)
+	defer atomic.AddInt64(&q.wlock, -1)
 	if status := q.getStatus(); status == queue.StatusClose || status == queue.StatusFail {
 		return queue.ErrQueueClosed
 	}
@@ -64,11 +70,9 @@ func (q *Queue) Enqueue(x any) (err error) {
 		return
 	}
 
-	// Start timer on first incoming item.
-	// Timer will trigger flush operation after Config.FlushInterval since current time.
-	if !q.CheckBit(flagTimer) {
-		q.SetBit(flagTimer, true)
-		go q.timer.wait(q)
+	// Arm the timer on the first incoming item after a flush. CAS guarantees a single armed timer.
+	if atomic.CompareAndSwapUint32(&q.timerOn, 0, 1) {
+		q.timer.wait(q)
 	}
 
 	// Forward encoded item to writer.
@@ -82,8 +86,9 @@ func (q *Queue) Enqueue(x any) (err error) {
 
 	// Check if Config.Capacity reached.
 	if q.c().Writer.Size() >= q.c().Capacity {
-		// Reset timer and flush with corresponding reason.
-		q.timer.reset()
+		// Disarm the timer and flush with corresponding reason.
+		q.timer.stop()
+		atomic.StoreUint32(&q.timerOn, 0)
 		err = q.flushLF(flushReasonSize)
 	}
 
@@ -109,20 +114,38 @@ func (q *Queue) Rate() float32 {
 }
 
 // Close gracefully stops the queue.
+//
+// Close is fully synchronous: it stops accepting new items, waits for all in-flight Enqueue operations
+// to finish, then flushes everything accumulated in the queue to the storage. It returns only after the
+// data is flushed, so nothing is lost.
 func (q *Queue) Close() error {
-	if q.getStatus() == queue.StatusClose {
+	q.once.Do(q.init)
+	if status := q.getStatus(); status == queue.StatusFail {
+		return q.Err
+	}
+
+	// Stop accepting new items. CAS makes Close idempotent.
+	if !atomic.CompareAndSwapUint32((*uint32)(&q.status), uint32(queue.StatusActive), uint32(queue.StatusClose)) {
 		return queue.ErrQueueClosed
 	}
 
 	if l := q.l(); l != nil {
-		msg := "caught close signal"
-		l.Printf(msg)
+		l.Printf("caught close signal")
 	}
 
+	// Wait until all in-flight Enqueue operations are finished: their data must reach the Writer before
+	// the final flush. The mutex isn't held here to avoid a deadlock with the Enqueue waiting on it.
+	for atomic.LoadInt64(&q.wlock) > 0 {
+		runtime.Gosched()
+	}
+
+	// Disarm the timer so it can't fire after the final flush, and flush under the mutex: this serializes
+	// with a possibly in-flight timer flush (a late one is a no-op, Writer.Size() is zero after this flush).
 	q.mux.Lock()
-	defer q.mux.Unlock()
 	q.timer.stop()
-	return q.flushLF(flushReasonForce)
+	err := q.flushLF(flushReasonForce)
+	q.mux.Unlock()
+	return err
 }
 
 // Init the queue.

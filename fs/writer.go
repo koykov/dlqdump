@@ -97,6 +97,14 @@ func (d *Writer) Flush() (err error) {
 
 	d.mux.Lock()
 	defer d.mux.Unlock()
+
+	// Nothing is collected and no file is pending: nothing to flush. This makes Flush safe to call on an
+	// empty queue and idempotent (a repeated call after the data is flushed is a no-op).
+	if d.f == nil && len(d.buf) == 0 {
+		atomic.StoreUint64(&d.sz, 0)
+		return nil
+	}
+
 	// Flush buffered data and clear buffer.
 	if len(d.buf) > 0 {
 		if err = d.flushBuf(); err != nil {
@@ -106,12 +114,26 @@ func (d *Writer) Flush() (err error) {
 	d.buf = d.buf[:0]
 	atomic.StoreUint64(&d.sz, 0)
 
-	// Close file and rename temporary file.
-	if err = d.f.Close(); err != nil {
+	if d.f == nil {
+		// Defensive: flushBuf() above must have created the file.
+		return nil
+	}
+
+	// Make the data durable before closing. Without Sync the data may stay in the OS page cache and get
+	// lost on a crash or power loss even though Flush returned successfully.
+	if err = d.f.Sync(); err != nil {
+		_ = d.f.Close()
+		d.f = nil
 		return
 	}
-	err = os.Rename(d.ft, d.fd)
+	if err = d.f.Close(); err != nil {
+		d.f = nil
+		return
+	}
 	d.f = nil
+
+	// Close file and rename temporary file.
+	err = os.Rename(d.ft, d.fd)
 
 	return
 }
