@@ -33,16 +33,20 @@ func NewRestorer(config *Config) (*Restorer, error) {
 }
 
 // Restore makes an attempt of restoring operation.
+//
+// Restore reads the dump and forwards each item to the destination queue. On Close it stops reading new
+// items, but the item that has already been read is still delivered: Close is synchronous and waits until
+// the in-flight item is sent (see CloseWithTimeout/CloseWithContext).
 func (r *Restorer) Restore() error {
 	r.once.Do(r.init)
 	if status := r.getStatus(); status == queue.StatusClose || status == queue.StatusFail {
 		return queue.ErrQueueClosed
 	}
 
-	if atomic.LoadUint32(&r.lock) == 1 {
+	if !atomic.CompareAndSwapUint32(&r.lock, 0, 1) {
+		// Another restore attempt is in progress.
 		return nil
 	}
-	atomic.StoreUint32(&r.lock, 1)
 	defer atomic.StoreUint32(&r.lock, 0)
 
 	var (
@@ -50,8 +54,10 @@ func (r *Restorer) Restore() error {
 		ver Version
 	)
 	for {
+		// Once closing, stop reading new items. The item read on the previous iteration has already been
+		// delivered, so nothing is lost.
 		if r.getStatus() == queue.StatusClose {
-			return queue.ErrQueueClosed
+			break
 		}
 
 		// Check reader for new encoded items.
@@ -77,17 +83,15 @@ func (r *Restorer) Restore() error {
 			r.config.MetricsWriter.Fail("decode error")
 			continue
 		}
-		// Spin until destination queue rate is too big.
+		// Wait until the destination queue can accept the already-read item. On Close the item is not
+		// dropped: the wait continues (bounded by CloseWithTimeout/CloseWithContext) until it is delivered.
 		for r.config.Queue.Rate() > r.config.AllowRate {
-			if r.getStatus() == queue.StatusClose {
-				return queue.ErrQueueClosed
-			}
 			time.Sleep(r.config.PostponeInterval)
 		}
 		// Put item to the destination queue.
 		if err = r.config.Queue.Enqueue(x); err != nil {
 			r.config.MetricsWriter.Fail("enqueue fail")
-			continue
+			break
 		}
 		r.config.MetricsWriter.Restore(len(r.buf))
 	}
@@ -101,9 +105,7 @@ func (r *Restorer) Close() error {
 
 // CloseWithTimeout stops the restorer with timeout.
 func (r *Restorer) CloseWithTimeout(timeout time.Duration) error {
-	// Signal an in-flight Restore() to abort as soon as possible: Restore()
-	// checks the status at the top of its loop and while waiting for the
-	// destination queue rate to drop.
+	// Signal an in-flight Restore() to stop reading new items once the current item is delivered.
 	r.setStatus(queue.StatusClose)
 	deadline := time.Now().Add(timeout)
 	for atomic.LoadUint32(&r.lock) == 1 {
@@ -112,7 +114,7 @@ func (r *Restorer) CloseWithTimeout(timeout time.Duration) error {
 		}
 		time.Sleep(time.Millisecond)
 	}
-	return nil
+	return r.config.Reader.Close()
 }
 
 // CloseWithContext stops the restorer and respects ctx cancellation while waiting
@@ -126,7 +128,7 @@ func (r *Restorer) CloseWithContext(ctx context.Context) error {
 		case <-time.After(time.Millisecond):
 		}
 	}
-	return nil
+	return r.config.Reader.Close()
 }
 
 // ForceClose immediately stops the queue.

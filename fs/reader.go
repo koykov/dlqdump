@@ -76,6 +76,21 @@ func (r *Reader) Read(dst []byte) (dlqdump.Version, []byte, error) {
 	return r.ver, dst, nil
 }
 
+// Close releases the currently open dump file without removing it, so its unread items can be picked up
+// by the next restore attempt. It lets Restorer.Close release the file descriptor.
+func (r *Reader) Close() error {
+	r.mux.Lock()
+	defer r.mux.Unlock()
+	if r.f == nil {
+		return nil
+	}
+	err := r.f.Close()
+	r.f = nil
+	r.fn = ""
+	r.ver = 0
+	return err
+}
+
 func (r *Reader) init() {
 	r.mask = r.MatchMask
 	if r.OnEOF == nil {

@@ -36,7 +36,9 @@ the moment of coming the first item in DLQ).
 As a result, DLQ waits for incoming items and then checks what reason will occur first: size of collected data will overflow
 `Capacity` or `FlushInterval` will reach.
 
-Note, on close the DLQ, the force flush will happen, independent of both params. Then DLQ will close.
+Note, closing the DLQ (`Close`) is synchronous: it stops accepting new items, waits for all in-flight `Enqueue`
+operations, force flushes the data, independent of both params, and only then returns. Items enqueued after the close are
+rejected with `queue.ErrQueueClosed`.
 
 ### Serialization
 
@@ -57,6 +59,9 @@ using version and serialized data, writes a dump. `dlqdump` has builtin `Writer`
 [write dumps to the disk](fs).
 
 You may write your own implementation to write dumps to the cloud, etc...
+
+The builtin disk implementation performs `fsync` before closing the file and only then renames the temporary file, so a
+successful flush means the data is actually written to the disk.
 
 ## Restoring
 
@@ -83,18 +88,25 @@ The target queue set up using param `Queue` and must implement [queue interface]
 
 ### Restoring settings
 
-`Restorer` has three params:
+`Restorer` has the following params:
 * `CheckInterval` - the interval between checks of dumps in storage
 * `PostponeInterval` - how long restoring must be postponed if target's queue rate overflows `AllowRate`
 * `AllowRate` - the maximum rate (items/capacity) of target queue that allows to send items to it. Required to avoid
 overflowing of target queue by `Restorer`
+* `CloseTimeout` - time limit to wait for an in-flight restore to stop on close (30 seconds by default)
+
+Closing the `Restorer` is synchronous as well: from the moment of the call new dumps are not read anymore, but the items
+that have already been read are still sent to the target queue, and only after that `Close` returns. `CloseTimeout` bounds
+that wait; if the target queue can't accept the items in time, `Close` returns `ErrTimeout`. There are also
+`CloseWithTimeout(timeout)` and `CloseWithContext(ctx)` for finer control.
 
 ### Dump reading
 
 `Restorer` similar to `Queue` has two abstraction layers, but in reverse meaning.
 
 The first layer represents by param `Reader` that must implement [`Reader`](reader.go) interface. This object must read
-from the dump version and serialized data till EOF error caught.
+from the dump version and serialized data till EOF error caught, and also implement `io.Closer`: its `Close` method is
+called by the `Restorer` on completion to release resources (eg: close the open dump file).
 
 `dlqdump` has builtin implementation that [reads dump from the disk](fs). As usual, you may write your own implementation
 for required storage.

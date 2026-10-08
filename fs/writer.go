@@ -42,6 +42,8 @@ type Writer struct {
 	ft  string
 	fd  string
 	buf []byte
+	// pending indicates that a file was created/closed but not yet renamed from ft to fd.
+	pending bool
 
 	err error
 }
@@ -97,22 +99,49 @@ func (d *Writer) Flush() (err error) {
 
 	d.mux.Lock()
 	defer d.mux.Unlock()
-	// Flush buffered data and clear buffer.
+
+	// Nothing is collected and no rename is pending: nothing to flush. This makes Flush safe to call on an
+	// empty queue and idempotent (a repeated call after the data is flushed is a no-op).
+	if d.f == nil && len(d.buf) == 0 && !d.pending {
+		atomic.StoreUint64(&d.sz, 0)
+		return nil
+	}
+
 	if len(d.buf) > 0 {
 		if err = d.flushBuf(); err != nil {
 			return
 		}
 	}
 	d.buf = d.buf[:0]
-	atomic.StoreUint64(&d.sz, 0)
 
-	// Close file and rename temporary file.
-	if err = d.f.Close(); err != nil {
-		return
+	if d.f != nil {
+		// Make the data durable before closing. Without Sync the data may stay in the OS page cache and get
+		// lost on a crash or power loss even though Flush returned successfully.
+		if err = d.f.Sync(); err != nil {
+			_ = d.f.Close()
+			d.f = nil
+			d.pending = true
+			return
+		}
+		if err = d.f.Close(); err != nil {
+			d.f = nil
+			d.pending = true
+			return
+		}
+		d.f = nil
+		d.pending = true
 	}
-	err = os.Rename(d.ft, d.fd)
-	d.f = nil
 
+	// Rename the temporary file. Size() is only reset after a successful rename, so a failed rename
+	// can be retried by a subsequent flush instead of permanently orphaning the data.
+	if d.pending {
+		if err = os.Rename(d.ft, d.fd); err != nil {
+			return
+		}
+		d.pending = false
+	}
+
+	atomic.StoreUint64(&d.sz, 0)
 	return
 }
 
@@ -145,6 +174,14 @@ func (d *Writer) init() {
 func (d *Writer) flushBuf() (err error) {
 	lo, hi := 4, len(d.buf)
 	if d.f == nil {
+		// Retry a previously failed rename before opening a new file, otherwise the pending .tmp would be
+		// overwritten and its data lost.
+		if d.pending {
+			if err = os.Rename(d.ft, d.fd); err != nil {
+				return
+			}
+			d.pending = false
+		}
 		d.buf = append(d.buf, d.dir...)
 		d.buf = append(d.buf, os.PathSeparator)
 		if d.buf, err = clock.AppendFormat(d.buf, d.mask, time.Now()); err != nil {
@@ -158,6 +195,7 @@ func (d *Writer) flushBuf() (err error) {
 		if d.f, err = os.Create(filepathTmp); err != nil {
 			return
 		}
+		d.pending = true
 		lo = 0
 	}
 
