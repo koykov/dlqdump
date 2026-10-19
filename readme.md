@@ -93,7 +93,12 @@ The target queue set up using param `Queue` and must implement [queue interface]
 * `PostponeInterval` - how long restoring must be postponed if target's queue rate overflows `AllowRate`
 * `AllowRate` - the maximum rate (items/capacity) of target queue that allows to send items to it. Required to avoid
 overflowing of target queue by `Restorer`
+* `ErrorRate` - the maximum processing error rate of the target queue that allows to restore (0.1% by default)
 * `CloseTimeout` - time limit to wait for an in-flight restore to stop on close (30 seconds by default)
+
+Before each restore attempt `Restorer` compares the target queue error rate (`Queue.ErrorRate()`) with `ErrorRate` and
+skips the attempt without reading the dump when the former is higher. This stops the restorer from feeding a queue
+whose workers keep failing - for example, when the storage behind it is down - and thus prevents a dump/restore loop.
 
 Closing the `Restorer` is synchronous as well: from the moment of the call new dumps are not read anymore, but the items
 that have already been read are still sent to the target queue, and only after that `Close` returns. `CloseTimeout` bounds
