@@ -17,6 +17,7 @@ type destQ struct {
 	mu        sync.Mutex
 	got       []string
 	rate      float32
+	errRate   float32
 	rateCalls int32
 }
 
@@ -30,6 +31,11 @@ func (d *destQ) Size() int         { return 0 }
 func (d *destQ) Capacity() int     { return 1000 }
 func (d *destQ) Close() error      { return nil }
 func (d *destQ) ForceClose() error { return nil }
+func (d *destQ) ErrorRate() float32 {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	return d.errRate
+}
 func (d *destQ) Rate() float32 {
 	atomic.AddInt32(&d.rateCalls, 1)
 	d.mu.Lock()
@@ -39,6 +45,11 @@ func (d *destQ) Rate() float32 {
 func (d *destQ) setRate(r float32) {
 	d.mu.Lock()
 	d.rate = r
+	d.mu.Unlock()
+}
+func (d *destQ) setErrorRate(r float32) {
+	d.mu.Lock()
+	d.errRate = r
 	d.mu.Unlock()
 }
 func (d *destQ) delivered() []string {
@@ -61,18 +72,35 @@ func writeDump(t *testing.T, dir, prefix string, items []string) {
 	}
 }
 
-func newTestRestorer(t *testing.T, dir string, dq *destQ, closeTimeout time.Duration) *dlqdump.Restorer {
-	t.Helper()
-	r, err := dlqdump.NewRestorer(&dlqdump.Config{
+func testConfig(dir string, dq *destQ) *dlqdump.Config {
+	return &dlqdump.Config{
 		Version:          dlqdump.NewVersion(1, 0, 0, 0),
 		CheckInterval:    time.Hour, // background ticker must not interfere with the tests
 		PostponeInterval: time.Millisecond,
 		AllowRate:        .95,
-		CloseTimeout:     closeTimeout,
 		Reader:           &fs.Reader{MatchMask: filepath.Join(dir, "*.bin")},
 		Decoder:          decoder.Fallthrough{},
 		Queue:            dq,
-	})
+	}
+}
+
+func newTestRestorer(t *testing.T, dir string, dq *destQ, closeTimeout time.Duration) *dlqdump.Restorer {
+	t.Helper()
+	c := testConfig(dir, dq)
+	c.CloseTimeout = closeTimeout
+	r, err := dlqdump.NewRestorer(c)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return r
+}
+
+func newTestRestorerErrorRate(t *testing.T, dir string, dq *destQ, limit float32) *dlqdump.Restorer {
+	t.Helper()
+	c := testConfig(dir, dq)
+	c.ErrorRate = limit
+	c.CloseTimeout = 5 * time.Second
+	r, err := dlqdump.NewRestorer(c)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -215,6 +243,50 @@ func TestRestorerCloseTimeout(t *testing.T) {
 		t.Errorf("CloseWithTimeout = %v, want %v", err, dlqdump.ErrTimeout)
 	}
 	dq.setRate(0)
+}
+
+func TestRestorerErrorRateGate(t *testing.T) {
+	items := []string{"a", "b", "c"}
+	cases := []struct {
+		name string
+		// limit is the configured ErrorRate limit; 0 means the default is used.
+		limit float32
+		// errRate is what the destination queue reports from ErrorRate().
+		errRate   float32
+		wantGot   []string
+		wantFiles int
+	}{
+		{name: "high_error_rate_blocks", limit: 0, errRate: .5, wantGot: nil, wantFiles: 1},
+		{name: "low_error_rate_restores", limit: 0, errRate: 0, wantGot: items, wantFiles: 0},
+		// errRate above zero but below the default proves the default limit (>0) was applied.
+		{name: "default_limit_restores_below", limit: 0, errRate: .0005, wantGot: items, wantFiles: 0},
+		// The gate uses a strict '>', so a rate equal to the limit must still restore.
+		{name: "at_custom_limit_restores", limit: .2, errRate: .2, wantGot: items, wantFiles: 0},
+		{name: "above_custom_limit_blocks", limit: .2, errRate: .3, wantGot: nil, wantFiles: 1},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			dir := t.TempDir()
+			writeDump(t, dir, "f", items)
+			dq := &destQ{}
+			dq.setErrorRate(c.errRate)
+			r := newTestRestorerErrorRate(t, dir, dq, c.limit)
+
+			if err := r.Restore(); err != nil {
+				t.Fatalf("restore: %v", err)
+			}
+			if got := dq.delivered(); !equalStrings(got, c.wantGot) {
+				t.Fatalf("delivered %v, want %v", got, c.wantGot)
+			}
+			matches, _ := filepath.Glob(filepath.Join(dir, "*.bin"))
+			if len(matches) != c.wantFiles {
+				t.Fatalf("dump files %d, want %d", len(matches), c.wantFiles)
+			}
+			if len(c.wantGot) == 0 && atomic.LoadInt32(&dq.rateCalls) != 0 {
+				t.Fatalf("destination queue was touched (rateCalls=%d) despite blocked restore", dq.rateCalls)
+			}
+		})
+	}
 }
 
 func TestReaderCloseKeepsFile(t *testing.T) {

@@ -59,11 +59,13 @@ func (q *testq) Enqueue(x any) error {
 	q.c++
 	return nil
 }
-func (q *testq) Size() int     { return 0 }
-func (q *testq) Capacity() int { return 0 }
-func (q *testq) Rate() float32 { return 0 }
-func (q *testq) Close() error  { return nil }
-func (q *testq) reset()        { q.t, q.c = nil, 0 }
+func (q *testq) Size() int          { return 0 }
+func (q *testq) Capacity() int      { return 0 }
+func (q *testq) ErrorRate() float32 { return 0 }
+func (q *testq) Rate() float32      { return 0 }
+func (q *testq) Close() error       { return nil }
+func (q *testq) ForceClose() error  { return nil }
+func (q *testq) reset()             { q.t, q.c = nil, 0 }
 
 var testVars []any
 
