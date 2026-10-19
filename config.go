@@ -9,7 +9,9 @@ import (
 const (
 	// Default time limit to flush the data.
 	defaultFlushInterval = time.Second * 30
-	// Default rate limit that allows restore.
+	// Default error rate limit that allows restore.
+	defaultErrorRate = .001
+	// Default fullness rate limit that allows restore.
 	defaultAllowRate = .95
 	// Default delay if restore allow rate limit exceeds.
 	defaultCheckInterval = time.Second
@@ -57,7 +59,10 @@ type Config struct {
 	// Wait duration if queue rate exceeds AllowRate.
 	// If this param omit CheckInterval will use instead.
 	PostponeInterval time.Duration
-	// Queue rate that allows restore.
+	// Queue error rate that allows restore.
+	// If this param omit defaultErrorRate (0.1%) will use by default.
+	ErrorRate float32
+	// Queue fullness rate that allows restore.
 	// If this param omit defaultAllowRate (95%) will use by default.
 	AllowRate float32
 	// Time limit to wait for active restore to stop on Close.

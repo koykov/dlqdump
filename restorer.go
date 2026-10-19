@@ -43,6 +43,10 @@ func (r *Restorer) Restore() error {
 		return queue.ErrQueueClosed
 	}
 
+	if r.config.Queue.ErrorRate() > r.config.ErrorRate {
+		return nil
+	}
+
 	if !atomic.CompareAndSwapUint32(&r.lock, 0, 1) {
 		// Another restore attempt is in progress.
 		return nil
@@ -164,6 +168,9 @@ func (r *Restorer) init() {
 	}
 	if c.PostponeInterval == 0 {
 		c.PostponeInterval = c.CheckInterval
+	}
+	if c.ErrorRate == 0 {
+		c.ErrorRate = defaultErrorRate
 	}
 	if c.AllowRate == 0 {
 		c.AllowRate = defaultAllowRate
